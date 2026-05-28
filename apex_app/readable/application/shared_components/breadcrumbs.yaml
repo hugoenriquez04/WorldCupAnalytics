@@ -1,0 +1,105 @@
+---
+- # ====== Breadcrumb: Breadcrumb ==============================
+  id: 8979832800230580
+  identification: 
+    name: Breadcrumb
+
+  entries: 
+  - # ====== Entry: Home =========================================
+    id: 8980017161230580
+    identification: 
+      name: Home
+      page-number: 1
+
+    execution: 
+      sequence: 10
+
+    link: 
+      target: 
+        url: 'f?p=&APP_ID.:1:&APP_SESSION.::&DEBUG.:::'
+        page: 1 # Home
+
+  - # ====== Entry: Venue Map ====================================
+    id: 8998127836178302
+    identification: 
+      name: Venue Map
+      page-number: 4
+
+    execution: 
+      sequence: 10
+
+    link: 
+      target: 
+        url: 'f?p=&APP_ID.:4:&APP_SESSION.::&DEBUG.:::'
+        page: 4 # 2026 World Cup Venues
+
+  - # ====== Entry: Dashboard ====================================
+    id: 9001113279060917
+    identification: 
+      name: Dashboard
+      page-number: 2
+
+    execution: 
+      sequence: 10
+
+    link: 
+      target: 
+        url: 'f?p=&APP_ID.:2:&APP_SESSION.::&DEBUG.:::'
+        page: 2 # Historical Data
+
+  - # ====== Entry: Team Browser =================================
+    id: 9386487255324604
+    identification: 
+      name: Team Browser
+      page-number: 8
+
+    execution: 
+      sequence: 10
+
+    link: 
+      target: 
+        url: 'f?p=&APP_ID.:8:&APP_SESSION.::&DEBUG.:::'
+        page: 8 # Team Browser
+
+  - # ====== Entry: Match History ================================
+    id: 9393993894260349
+    identification: 
+      name: Match History
+      page-number: 10
+
+    execution: 
+      sequence: 10
+
+    link: 
+      target: 
+        url: 'f?p=&APP_ID.:10:&APP_SESSION.::&DEBUG.:::'
+        page: 10 # Match History
+
+  - # ====== Entry: Match Calendar ===============================
+    id: 9595751528204866
+    identification: 
+      name: Match Calendar
+      page-number: 6
+
+    execution: 
+      sequence: 10
+
+    link: 
+      target: 
+        url: 'f?p=&APP_ID.:6:&APP_SESSION.::&DEBUG.:::'
+        page: 6 # Match Calendar
+
+  - # ====== Entry: WC2026 Predictions ===========================
+    id: 12372464389027330
+    identification: 
+      name: WC2026 Predictions
+      page-number: 3
+
+    execution: 
+      sequence: 10
+
+    link: 
+      target: 
+        url: 'f?p=&APP_ID.:3:&APP_SESSION.::&DEBUG.:::'
+        page: 3 # WC2026 Predictions
+

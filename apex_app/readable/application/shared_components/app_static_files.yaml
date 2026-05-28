@@ -1,0 +1,90 @@
+---
+- # ====== Static Application File: icons/app-icon-32.png ======
+  id: 8982601581230519
+  identification: 
+    file-name: icons/app-icon-32.png
+
+  attributes: 
+    mime-type: image/png
+    file-character-set: Unicode UTF-8
+
+- # ====== Static Application File: icons/app-icon-144-rounded.p
+  id: 8982913883230517
+  identification: 
+    file-name: icons/app-icon-144-rounded.png
+
+  attributes: 
+    mime-type: image/png
+    file-character-set: Unicode UTF-8
+
+- # ====== Static Application File: icons/app-icon-192.png =====
+  id: 8983256325230509
+  identification: 
+    file-name: icons/app-icon-192.png
+
+  attributes: 
+    mime-type: image/png
+    file-character-set: Unicode UTF-8
+
+- # ====== Static Application File: icons/app-icon-256-rounded.p
+  id: 8983500948230509
+  identification: 
+    file-name: icons/app-icon-256-rounded.png
+
+  attributes: 
+    mime-type: image/png
+    file-character-set: Unicode UTF-8
+
+- # ====== Static Application File: icons/app-icon-512.png =====
+  id: 8983844355230508
+  identification: 
+    file-name: icons/app-icon-512.png
+
+  attributes: 
+    mime-type: image/png
+    file-character-set: Unicode UTF-8
+
+- # ====== Static Application File: Portada app.jpg ============
+  id: 9020251901825434
+  identification: 
+    file-name: Portada app.jpg
+
+  attributes: 
+    mime-type: image/jpeg
+    file-character-set: Unicode UTF-8
+
+- # ====== Static Application File: logo_aplicacion/logo_app.png
+  id: 9776666221872618
+  identification: 
+    file-name: logo_aplicacion/logo_app.png
+
+  attributes: 
+    mime-type: image/png
+    file-character-set: Unicode UTF-8
+
+- # ====== Static Application File: app-101-logo.png ===========
+  id: 12018556264517174
+  identification: 
+    file-name: app-101-logo.png
+
+  attributes: 
+    mime-type: image/png
+
+- # ====== Static Application File: icons/Icono_IA.png =========
+  id: 12087648569526051
+  identification: 
+    file-name: icons/Icono_IA.png
+
+  attributes: 
+    mime-type: image/png
+    file-character-set: Unicode UTF-8
+
+- # ====== Static Application File: icons/Icono_Usuario.png ====
+  id: 12088044853523460
+  identification: 
+    file-name: icons/Icono_Usuario.png
+
+  attributes: 
+    mime-type: image/png
+    file-character-set: Unicode UTF-8
+

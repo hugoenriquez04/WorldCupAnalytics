@@ -1,0 +1,2354 @@
+---
+# ====== Page: AI Assistant ==================================
+id: 5
+identification: 
+  name: AI Assistant
+  alias: PRUEBAS-IA
+  title: AI assistant
+
+appearance: 
+  page-mode: Normal
+  page-template: Theme Default
+  template-options: 
+  - '#DEFAULT#'
+
+navigation-menu: 
+  override-user-interface-level: false
+
+navigation: 
+  cursor-focus: Do not focus cursor
+  warn-on-unsaved-changes: true
+
+javascript: 
+  execute-when-page-loads: |
+    // ==========================================
+    // 1. INICIALIZACIÓN PROTEGIDA
+    // ==========================================
+    $(document).ready(function() {
+        var reubicarBotones = function() {
+            var $prompt = $('#5_PROMPT');
+            var $container = $prompt.closest('.t-Form-itemWrapper');
+            var $btnNuevo = $('#btn-nuevo');
+            var $btnSubmit = $('#mi-boton');
+    
+            if ($container.length && $btnNuevo.length && $btnSubmit.length) {
+                $container.append($btnNuevo).append($btnSubmit);
+            }
+        };
+    
+        setTimeout(function() {
+            reubicarBotones();
+            limpiarTodo(); // Inicia la página limpia
+    
+            // Evento para el botón de RECARGA (Limpiar)
+            $(document).on('click', '#btn-nuevo', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                limpiarTodo();
+                return false;
+            });
+    
+            // Evento para el botón ENVIAR
+            $(document).on('click', '#mi-boton', function() {
+                iniciarVisualesCarga();
+            });
+    
+            // Ajuste automático de altura del textarea
+            $('#5_PROMPT').on('input', function() {
+                this.style.height = '52px';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+        }, 500);
+    });
+    
+    // ==========================================
+    // 2. EVENTO ENTER (Enviar con teclado)
+    // ==========================================
+    $(document).off('keydown', '[id="5_PROMPT"]').on('keydown', '[id="5_PROMPT"]', function(e) {
+        // Si pulsa Enter y NO tiene pulsado Shift
+        if (e.which === 13 && !e.shiftKey) {
+            e.preventDefault(); 
+            $('#mi-boton').click();
+        }
+    });
+    
+    // ==========================================
+    // 3. FUNCIÓN LIMPIAR (Resetear vista)
+    // ==========================================
+    function limpiarTodo() {
+        // 1. Resetear el textarea
+        $('#5_PROMPT').val('').css('height', '52px');
+        
+        // 2. Detener animaciones del botón si las hubiera
+        $('#mi-boton').removeClass('balon-girando'); 
+    }
+    
+    // ==========================================
+    // 4. VISUALES DE CARGA 
+    // ==========================================
+    function iniciarVisualesCarga() {
+        var val = $('#5_PROMPT').val().trim();
+        if (val === '') return;
+        
+        // 1. Bloqueamos el botón y activamos el balón girando
+        $('#mi-boton').css('pointer-events', 'none').css('opacity', '0.5');
+        $('#mi-boton').addClass('balon-girando');
+    }
+    
+    // ==========================================
+    // 5. DETECTOR FINALIZACIÓN (Refresco de APEX)
+    // ==========================================
+    // Este evento salta automáticamente cuando APEX termina de ejecutar el PL/SQL y refrescar las regiones
+    $(document).ajaxComplete(function(event, xhr, settings) {
+        
+        // 1. Restauramos el botón
+        $('#mi-boton').css('pointer-events', 'auto').css('opacity', '1');
+        $('#mi-boton').removeClass('balon-girando'); 
+        
+        // 2. Limpiamos el input para la siguiente pregunta
+        $('#5_PROMPT').val('').css('height', '52px');
+    
+        // 3. Mostramos la tabla/gráfico si estaba oculta
+        var $reporte = $('#reporte-sql');
+        if ($reporte.length) {
+            $reporte.removeClass('oculto-total');
+            $reporte.css('display', 'block').show();
+        }
+        
+        // 4. Scroll al fondo del chat para ver la respuesta de la IA
+        var $chatBody = $('#region-chat .t-Region-body');
+        if($chatBody.length) $chatBody[0].scrollTop = $chatBody[0].scrollHeight;
+    });
+
+css: 
+  inline: |
+    /*==========================================
+       1. CÁPSULA Y TEXTAREA
+    ========================================== */
+    [id="5_PROMPT_CONTAINER"] .t-Form-itemWrapper {
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+    
+    textarea[id="5_PROMPT"] {
+        min-height: 52px !important;
+        border-radius: 26px !important;
+        padding: 12px 100px 12px 20px !important; 
+        width: 100% !important;
+        box-sizing: border-box !important;
+        background-color: #e3f2fd !important; 
+        border: 1px solid #bbdefb !important;
+        resize: none !important;
+        line-height: 1.5 !important;
+    }
+    
+    /* ==========================================
+       2. BOTONES
+       ========================================== */
+    #btn-nuevo, #mi-boton {
+        position: absolute !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        z-index: 999 !important;
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    #btn-nuevo { 
+        right: 50px !important; 
+        background-color: #e0e0e0 !important; 
+    }
+    
+    #mi-boton { 
+        right: 10px !important; 
+        outline: none !important;
+        background: transparent !important;
+        cursor: pointer;
+    }
+    
+    #mi-boton .t-Icon, #mi-boton img, #mi-boton .fa {
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1 !important;
+        display: block !important;
+        color: #0071ce !important; 
+        transition: color 0.3s ease !important;
+    }
+    
+    #mi-boton:hover .t-Icon, #mi-boton:hover img, #mi-boton:hover .fa {
+        color: #006400 !important; 
+    }
+    
+    /* ==========================================
+       3. ANIMACIÓN BALÓN GIRANDO
+       ========================================== */
+    #mi-boton.balon-girando .t-Icon, 
+    #mi-boton.balon-girando img, 
+    #mi-boton.balon-girando .fa {
+        display: inline-block !important;
+        animation: girar 0.8s linear infinite !important;
+        transform-origin: center center !important;
+    }
+    
+    @keyframes girar { 
+        from { transform: rotate(0deg); } 
+        to { transform: rotate(360deg); } 
+    }
+    
+    
+    
+    /* ==========================================
+      4. ESTILO DEL CHAT
+       ========================================== */
+    
+    .t-Comments-icon, .t-Comments-userIcon, .u-Processing, .nodatafound { display: none !important; }
+    
+    .t-Comments-body::before, 
+    .t-Comments-body::after {
+        display: none !important;
+    }
+    
+    .chat-derecha {
+        display: flex !important;
+        justify-content: flex-end !important;
+        background: transparent !important;
+        width: 100% !important;
+    }
+    
+    /* Damos forma de burbuja al mensaje del USUARIO */
+    .chat-derecha .t-Comments-body {
+        background-color: #e0f7fa !important;
+        border: none !important; 
+        border-radius: 15px !important;
+        border-bottom-right-radius: 0 !important; 
+        padding: 12px 16px !important;
+        max-width: 80% !important; 
+        display: inline-block !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.15) !important;
+    }
+    
+    /* Alineamos la fecha/nombre a la derecha */
+    .chat-derecha .t-Comments-info {
+        text-align: right !important;
+        margin-bottom: 5px !important;
+    }
+    
+    /* Repetimos la lógica pero hacia la izquierda y en blanco/gris */
+    .chat-izquierda {
+        display: flex !important;
+        justify-content: flex-start !important;
+        background: transparent !important;
+        width: 100% !important;
+    }
+    
+    .chat-izquierda .t-Comments-body {
+        background-color: #fcfde2 !important;
+        border: 1px solid #eee !important;
+        border-radius: 15px !important;
+        border-bottom-left-radius: 0 !important;
+        padding: 12px 16px !important;
+        max-width: 80% !important;
+        display: inline-block !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.15) !important;
+    }
+    
+    #region-chat .t-Region-body {
+        background-color: #f8fbff !important; 
+    }
+    
+    #region-chat {
+        border: 1px solid #0b607c !important;
+        border-radius: 4px !important;
+    }
+    
+    
+    /* ==========================================
+       5. TÍTULO DEL DATA REPORT
+       ========================================== */
+    
+    #reporte-sql .t-Region-title,
+    #region-chat .t-Region-title,
+    #region-chart .t-Region-title,
+    #region-bar .t-Region-title {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        font-size: 16px !important;
+    }
+    
+    /* ==========================================
+       6. CABECERA DE LAS REGIONES (HEADER)
+       ========================================== */
+    
+    /* Cambiamos el fondo de la banda donde va el título */
+    #region-chat .t-Region-header,
+    #region-chart .t-Region-header,
+    #region-bar .t-Region-header,
+    #reporte-sql .t-Region-header {
+        background-color: #0b607c !important; 
+        border-bottom: none !important; 
+    }
+    
+    
+    /* ==========================================
+       7. SCROLL INTERNO
+       ========================================== */
+    
+    #region-chat {
+        overflow: hidden !important; 
+    }
+    
+    #region-chat .t-Region-body {
+        height: 350px !important; 
+        overflow-y: auto !important; 
+        overflow-x: hidden !important;
+        padding-right: 5px !important;
+    }
+    
+    #region-chat .t-Region-body::-webkit-scrollbar {
+        width: 6px;
+    }
+    #region-chat .t-Region-body::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    #region-chat .t-Region-body::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1; 
+        border-radius: 10px;
+    }
+    
+
+security: 
+  authentication: Page Requires Authentication
+  deep-linking: Application Default
+  page-access-protection: Arguments Must Have Checksum
+  form-auto-complete: Off
+  browser-cache: Application Default
+
+session-management: 
+  rejoin-sessions: Application Default
+
+advanced: 
+  enable-duplicate-page-submissions: Yes - Enable page to be re-posted
+  reload-on-submit: Only for Success
+
+server-cache: 
+  caching: Disabled
+
+regions: 
+- # ====== Region: Lectura memoria chat ========================
+  id: 9017410355843827
+  identification: 
+    name: Lectura memoria chat
+    title: How can I help you?
+    type: Classic Report
+
+  source: 
+    location: Local Database
+    type: SQL Query
+    sql-query: |
+      SELECT 
+          c001 AS User_name,
+          c002 AS comment_text,
+          c003 AS comment_date,
+          CASE 
+              WHEN c001 = 'USER' THEN 'chat-derecha'
+              ELSE 'chat-izquierda'
+          END AS COMMENT_MODIFIERS,
+          NULL AS attribute_1,
+          NULL AS attribute_2,
+          NULL AS attribute_3,
+          NULL AS attribute_4,
+          NULL AS actions
+      FROM apex_collections
+      WHERE collection_name = 'CHAT_HISTORY'
+      ORDER BY seq_id ASC;
+
+  order-by: 
+    type: None
+
+  layout: 
+    sequence: 40
+    parent-region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Standard
+    template-options: 
+    - '#DEFAULT#'
+    - t-Region--scrollBody
+    css-classes: 
+    - caja-chat-scroll
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    static-id: region-chat
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  server-cache: 
+    caching: Disabled
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    layout: 
+      number-of-rows-type: Static Value
+      number-of-rows: 1000
+
+    appearance: 
+      template-type: Theme
+      template: Comments
+      template-options: 
+      - '#DEFAULT#'
+      - t-Comments--chat
+
+    pagination: 
+      type: No Pagination (Show All Rows)
+      partial-page-refresh: true
+
+    performance: 
+      lazy-loading: false
+
+    break-formatting: 
+      break-columns: No Break
+
+    advanced: 
+      strip-html: false
+      sort-nulls: Last
+
+    heading: 
+      type: Custom Headings
+
+    download: 
+      csv-export-enabled: false
+
+    printing: 
+      enabled: false
+
+  columns: 
+  - # ====== Column: USER_NAME ===================================
+    id: 9018019161843833
+    identification: 
+      column-name: USER_NAME
+      type: Plain Text
+
+    heading: 
+      heading: User Name
+      alignment: start
+
+    layout: 
+      sequence: 10
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COMMENT_TEXT ================================
+    id: 9018182660843834
+    identification: 
+      column-name: COMMENT_TEXT
+      type: Plain Text
+
+    heading: 
+      heading: Comment Text
+      alignment: start
+
+    layout: 
+      sequence: 20
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: false
+
+  - # ====== Column: COMMENT_DATE ================================
+    id: 9018231037843835
+    identification: 
+      column-name: COMMENT_DATE
+      type: Plain Text
+
+    heading: 
+      heading: Comment Date
+      alignment: start
+
+    layout: 
+      sequence: 30
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: ATTRIBUTE_1 =================================
+    id: 9018855423843841
+    identification: 
+      column-name: ATTRIBUTE_1
+      type: Plain Text
+
+    heading: 
+      heading: Attribute 1
+      alignment: start
+
+    layout: 
+      sequence: 40
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: ATTRIBUTE_2 =================================
+    id: 9018961101843842
+    identification: 
+      column-name: ATTRIBUTE_2
+      type: Plain Text
+
+    heading: 
+      heading: Attribute 2
+      alignment: start
+
+    layout: 
+      sequence: 50
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: ATTRIBUTE_3 =================================
+    id: 9019051828843843
+    identification: 
+      column-name: ATTRIBUTE_3
+      type: Plain Text
+
+    heading: 
+      heading: Attribute 3
+      alignment: start
+
+    layout: 
+      sequence: 60
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: ATTRIBUTE_4 =================================
+    id: 9019113519843844
+    identification: 
+      column-name: ATTRIBUTE_4
+      type: Plain Text
+
+    heading: 
+      heading: Attribute 4
+      alignment: start
+
+    layout: 
+      sequence: 70
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: ACTIONS =====================================
+    id: 9019209476843845
+    identification: 
+      column-name: ACTIONS
+      type: Plain Text
+
+    heading: 
+      heading: Actions
+      alignment: start
+
+    layout: 
+      sequence: 80
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COMMENT_MODIFIERS ===========================
+    id: 9019597935843848
+    identification: 
+      column-name: COMMENT_MODIFIERS
+      type: Plain Text
+
+    heading: 
+      heading: Comment Modifiers
+      alignment: start
+
+    layout: 
+      sequence: 90
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+- # ====== Region: Data Report =================================
+  id: 9184259786067041
+  identification: 
+    name: Data Report
+    type: Classic Report
+
+  source: 
+    location: Local Database
+    type: Function Body returning SQL Query
+    language: PL/SQL
+    pl/sql-function-body-returning-sql-query: |
+      IF :5_SQL_GENERADO IS NOT NULL THEN
+          -- Mostramos el SQL generado en PROMPT EX
+          RETURN :5_SQL_GENERADO;
+      ELSE
+          -- Simulamos la estructura de 3 columnas para que APEX no se rompa
+          RETURN 'SELECT NULL AS LABEL, 0 AS VALUE, ''Ask a question to see the data'' AS "Info" FROM DUAL';
+      END IF;
+    page-items-to-submit: 
+    - 5_SQL_GENERADO
+    use-generic-column-names: true
+    generic-column-count: 15
+
+  order-by: 
+    type: None
+
+  layout: 
+    sequence: 120
+    parent-region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Standard
+    template-options: 
+    - '#DEFAULT#'
+    - t-Region--scrollBody
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    static-id: reporte-sql
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  server-cache: 
+    caching: Disabled
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    layout: 
+      number-of-rows-type: Static Value
+      number-of-rows: 15
+
+    appearance: 
+      template-type: Theme
+      template: Standard
+      template-options: 
+      - '#DEFAULT#'
+      - t-Report--altRowsDefault
+      - t-Report--rowHighlight
+
+    pagination: 
+      type: Row Ranges X to Y (with next and previous links)
+      display-position: Bottom - Right
+      partial-page-refresh: true
+
+    performance: 
+      lazy-loading: false
+
+    break-formatting: 
+      break-columns: No Break
+
+    advanced: 
+      strip-html: false
+      sort-nulls: Last
+
+    heading: 
+      type: Column Names
+
+    download: 
+      csv-export-enabled: false
+
+    printing: 
+      enabled: false
+
+  columns: 
+  - # ====== Column: COL01 =======================================
+    id: 9184404396067043
+    identification: 
+      column-name: COL01
+      type: Hidden
+
+    layout: 
+      sequence: 10
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL02 =======================================
+    id: 9184538409067044
+    identification: 
+      column-name: COL02
+      type: Hidden
+
+    layout: 
+      sequence: 20
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL03 =======================================
+    id: 9184639517067045
+    identification: 
+      column-name: COL03
+      type: Plain Text
+
+    heading: 
+      heading: Col03
+      alignment: start
+
+    layout: 
+      sequence: 30
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL04 =======================================
+    id: 9184774218067046
+    identification: 
+      column-name: COL04
+      type: Plain Text
+
+    heading: 
+      heading: Col04
+      alignment: start
+
+    layout: 
+      sequence: 40
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL05 =======================================
+    id: 9184827439067047
+    identification: 
+      column-name: COL05
+      type: Plain Text
+
+    heading: 
+      heading: Col05
+      alignment: start
+
+    layout: 
+      sequence: 50
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL06 =======================================
+    id: 9184963915067048
+    identification: 
+      column-name: COL06
+      type: Plain Text
+
+    heading: 
+      heading: Col06
+      alignment: start
+
+    layout: 
+      sequence: 60
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL07 =======================================
+    id: 9185012153067049
+    identification: 
+      column-name: COL07
+      type: Plain Text
+
+    heading: 
+      heading: Col07
+      alignment: start
+
+    layout: 
+      sequence: 70
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL08 =======================================
+    id: 9185102326067050
+    identification: 
+      column-name: COL08
+      type: Plain Text
+
+    heading: 
+      heading: Col08
+      alignment: start
+
+    layout: 
+      sequence: 80
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL09 =======================================
+    id: 12171536089454401
+    identification: 
+      column-name: COL09
+      type: Plain Text
+
+    heading: 
+      heading: Col09
+      alignment: start
+
+    layout: 
+      sequence: 90
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL10 =======================================
+    id: 12171624556454402
+    identification: 
+      column-name: COL10
+      type: Plain Text
+
+    heading: 
+      heading: Col10
+      alignment: start
+
+    layout: 
+      sequence: 100
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL11 =======================================
+    id: 12171730882454403
+    identification: 
+      column-name: COL11
+      type: Plain Text
+
+    heading: 
+      heading: Col11
+      alignment: start
+
+    layout: 
+      sequence: 110
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL12 =======================================
+    id: 12171831785454404
+    identification: 
+      column-name: COL12
+      type: Plain Text
+
+    heading: 
+      heading: Col12
+      alignment: start
+
+    layout: 
+      sequence: 120
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL13 =======================================
+    id: 12171910501454405
+    identification: 
+      column-name: COL13
+      type: Plain Text
+
+    heading: 
+      heading: Col13
+      alignment: start
+
+    layout: 
+      sequence: 130
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL14 =======================================
+    id: 12172011314454406
+    identification: 
+      column-name: COL14
+      type: Plain Text
+
+    heading: 
+      heading: Col14
+      alignment: start
+
+    layout: 
+      sequence: 140
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL15 =======================================
+    id: 12172171091454407
+    identification: 
+      column-name: COL15
+      type: Plain Text
+
+    heading: 
+      heading: Col15
+      alignment: start
+
+    layout: 
+      sequence: 150
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+- # ====== Region: Bar chart ===================================
+  id: 12172520446454411
+  identification: 
+    name: Bar chart
+    type: Chart
+
+  source: 
+    location: None
+
+  layout: 
+    sequence: 130
+    parent-region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Standard
+    template-options: 
+    - '#DEFAULT#'
+    - t-Region--scrollBody
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    static-id: region-bar
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  security: 
+    escape-special-characters: true
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    id: 12172665493454412
+    chart: 
+      type: Bar
+
+    appearance: 
+      orientation: Vertical
+      stack: false
+
+    layout: 
+      height: 400
+
+    data-cursor: 
+      cursor: Automatic
+      behavior: Automatic
+      dim-on-hover: true
+
+    multi-series-chart-data: 
+      fill-gaps-in-chart-data: true
+      sort-order: Label - Ascending
+      render-gap-as-zero: true
+
+    settings: 
+      zoom-and-scroll: No
+
+    animation: 
+      on-display: Automatic
+      on-data-change: Automatic
+
+    tooltip: 
+      show: true
+      show-series-name: true
+      show-group-name: true
+      show-value: true
+
+    legend: 
+      show: false
+
+    series: 
+    - # ====== Series: Bar chart ===================================
+      id: 12172783718454413
+      identification: 
+        name: Bar chart
+
+      execution: 
+        sequence: 10
+
+      source: 
+        location: Local Database
+        type: Function Body returning SQL Query
+        language: PL/SQL
+        pl/sql-function-body-returning-sql-query: |
+          DECLARE
+              --Tomamos el SQL generado en el PROMPT EXEC
+              v_sql CLOB := :5_SQL_GENERADO;
+          BEGIN
+              -- 1. Si no es un gráfico de barras, o el SQL está vacío, o no empieza por SELECT, salimos
+              IF :5_CHART_TYPE != 'BAR' OR v_sql IS NULL OR UPPER(SUBSTR(TRIM(v_sql),1,6)) != 'SELECT' THEN
+                  RETURN 'SELECT ''Sin datos'' AS LABEL, 0 AS VALUE FROM DUAL WHERE 1=2';
+              END IF;
+          
+              -- 2. Si todo está bien, envolvemos y limpiamos el SQL para el gráfico
+              RETURN 'SELECT LABEL, VALUE FROM (' || RTRIM(TRIM(v_sql), ';') || ')';
+          END;
+        page-items-to-submit: 
+        - 5_SQL_GENERADO
+        - ' 5_CHART_TYPE'
+
+      order-by: 
+        type: None
+
+      column-mapping: 
+        label: LABEL
+        value: VALUE
+
+      appearance: 
+        assigned-to-y2-axis: false
+
+      label: 
+        show: false
+
+    axes: 
+    - # ====== Axis: x =============================================
+      id: 12172824299454414
+      identification: 
+        name: x
+        show-axis: true
+
+      value: 
+        format-scaling: Automatic
+        baseline-scaling: Zero
+        scale: Linear
+
+      major-ticks: 
+        show: Yes
+
+      minor-ticks: 
+        show: false
+
+      tick-label: 
+        show: true
+        rotation: true
+        position: Outside
+
+    - # ====== Axis: y =============================================
+      id: 12172941335454415
+      identification: 
+        name: y
+        show-axis: true
+
+      value: 
+        format: Decimal
+        decimal-places: 0
+        format-scaling: None
+        baseline-scaling: Zero
+        scale: Linear
+
+      appearance: 
+        position: Automatic
+
+      major-ticks: 
+        show: Yes
+
+      minor-ticks: 
+        show: false
+
+      tick-label: 
+        show: true
+
+- # ====== Region: Pie Chart ===================================
+  id: 12173040861454416
+  identification: 
+    name: Pie Chart
+    type: Chart
+
+  source: 
+    location: None
+
+  layout: 
+    sequence: 150
+    parent-region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: false
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Standard
+    template-options: 
+    - '#DEFAULT#'
+    - t-Region--scrollBody
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    static-id: region-chart
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  security: 
+    escape-special-characters: true
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    id: 12173156891454417
+    chart: 
+      type: Pie
+
+    layout: 
+      height: 400
+
+    data-cursor: 
+      cursor: Automatic
+      behavior: Automatic
+      dim-on-hover: true
+
+    settings: 
+      pie-selection-effect: Highlight
+
+    value: 
+      pie-chart-other-threshold: 0
+      format: Decimal
+      decimal-places: 0
+      format-scaling: None
+
+    animation: 
+      on-display: Automatic
+      on-data-change: Automatic
+
+    tooltip: 
+      show: true
+      show-series-name: true
+      show-value: true
+
+    legend: 
+      show: true
+      position: Automatic
+      hide-and-show-behavior: Rescale
+
+    series: 
+    - # ====== Series: Pie chart ===================================
+      id: 12173299320454418
+      identification: 
+        name: Pie chart
+
+      execution: 
+        sequence: 10
+
+      source: 
+        location: Local Database
+        type: Function Body returning SQL Query
+        language: PL/SQL
+        pl/sql-function-body-returning-sql-query: |
+          DECLARE
+              -- Tomamos el SQL generado por la accion PROMPT EX
+              v_sql CLOB := :5_SQL_GENERADO;
+          BEGIN
+              -- 1. Si no es un gráfico circular, o el SQL está vacío, o no empieza por SELECT, salimos
+              IF :5_CHART_TYPE != 'PIE' OR v_sql IS NULL OR UPPER(SUBSTR(TRIM(v_sql),1,6)) != 'SELECT' THEN
+                  RETURN 'SELECT ''Sin datos'' AS LABEL, 0 AS VALUE FROM DUAL WHERE 1=2';
+              END IF;
+          
+              -- 2. Si todo está bien, envolvemos y limpiamos el SQL para el gráfico
+              RETURN 'SELECT LABEL, VALUE FROM (' || RTRIM(TRIM(v_sql), ';') || ')';
+          END;
+        page-items-to-submit: 
+        - 5_SQL_GENERADO
+        - ' 5_CHART_TYPE'
+
+      order-by: 
+        type: None
+
+      column-mapping: 
+        label: LABEL
+        value: VALUE
+
+      label: 
+        show: true
+        position: Automatic
+        display-as: Label
+
+page-items: 
+- # ====== Page Item: 5_SQL_GENERADO ===========================
+  id: 9184143490067040
+  identification: 
+    name: 5_SQL_GENERADO
+    type: Hidden
+
+  settings: 
+    value-protected: true
+
+  layout: 
+    sequence: 110
+    region: No Parent
+    slot: BODY
+
+  advanced: 
+    warn-on-unsaved-changes: Page Default
+
+  source: 
+    type: Null
+    used: Only when current value in session state is null
+
+  session-state: 
+    data-type: VARCHAR2
+    storage: Per Session (Persistent)
+
+  security: 
+    session-state-protection: Unrestricted
+    store-value-encrypted-in-session-state: true
+    restricted-characters: All characters can be saved.
+
+- # ====== Page Item: 5_CHART_TYPE =============================
+  id: 12172323999454409
+  identification: 
+    name: 5_CHART_TYPE
+    type: Hidden
+
+  settings: 
+    value-protected: false
+
+  layout: 
+    sequence: 160
+    region: No Parent
+    slot: BODY
+
+  advanced: 
+    warn-on-unsaved-changes: Page Default
+
+  source: 
+    type: Null
+    used: Only when current value in session state is null
+
+  session-state: 
+    data-type: VARCHAR2
+    storage: Per Session (Persistent)
+
+  security: 
+    session-state-protection: Unrestricted
+    store-value-encrypted-in-session-state: true
+    restricted-characters: All characters can be saved.
+
+- # ====== Page Item: 5_PROMPT =================================
+  id: 23576461377213954
+  identification: 
+    name: 5_PROMPT
+    type: Textarea
+
+  label: 
+    label: 'Ask our AI assistant:'
+    alignment: Left
+
+  settings: 
+    resizable: true
+    auto-height: true
+    character-counter: false
+    trim-spaces: Leading and Trailing
+
+  layout: 
+    sequence: 80
+    region: No Parent
+    slot: BODY
+    alignment: Left
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: 12
+    label-column-span: 0
+
+  appearance: 
+    template: Hidden
+    template-options: 
+    - '#DEFAULT#'
+    - t-Form-fieldContainer--stretchInputs
+    width: 30
+    height: 5
+    value-placeholder: Chat with our AI Assistant!
+
+  validation: 
+    value-required: false
+
+  advanced: 
+    css-classes: 
+    - chat-input-container
+    warn-on-unsaved-changes: Page Default
+
+  source: 
+    type: Null
+    used: Only when current value in session state is null
+
+  session-state: 
+    data-type: VARCHAR2
+    storage: Per Session (Persistent)
+
+  quick-picks: 
+    show-quick-picks: false
+
+  security: 
+    session-state-protection: Unrestricted
+    store-value-encrypted-in-session-state: true
+    restricted-characters: All characters can be saved.
+
+buttons: 
+- # ====== Button: BTN_LIMPIAR_CHAT ============================
+  id: 11576423839393007
+  identification: 
+    button-name: BTN_LIMPIAR_CHAT
+    label: Limpiar Chat
+
+  layout: 
+    sequence: 90
+    region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+    alignment: Left center
+
+  appearance: 
+    button-template: Icon
+    hot: false
+    template-options: 
+    - '#DEFAULT#'
+    icon: fa-refresh
+
+  behavior: 
+    action: Defined by Dynamic Action
+    execute-validations: true
+
+  advanced: 
+    static-id: btn-nuevo
+
+- # ====== Button: Submit ======================================
+  id: 11991152540820989
+  identification: 
+    button-name: Submit
+    label: Submit
+
+  layout: 
+    sequence: 100
+    region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: false
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+    alignment: Left center
+
+  appearance: 
+    button-template: Icon
+    hot: true
+    template-options: 
+    - '#DEFAULT#'
+    - t-Button--large
+    - t-Button--success
+    - t-Button--simple
+    - t-Button--hoverIconSpin
+    icon: fa-soccer-ball-o
+
+  behavior: 
+    action: Defined by Dynamic Action
+    execute-validations: true
+
+  advanced: 
+    static-id: mi-boton
+    custom-attributes: 
+    - data-loading-icon=""
+
+dynamic-actions: 
+- # ====== Dynamic Action: Ejecución del PROMPT ================
+  id: 9017841253843831
+  identification: 
+    name: Ejecución del PROMPT
+
+  execution: 
+    sequence: 10
+    event-scope: Static
+    type: Immediate
+
+  when: 
+    event: Click
+    selection-type: Button
+    button: Submit # 11991152540820989
+
+  actions: 
+  - # ====== Action: PROMPT_EX ===================================
+    id: 9017935826843832
+    identification: 
+      name: PROMPT_EX
+      action: Execute Server-side Code
+
+    settings: 
+      language: PE.PROPERTY.SOURCE_SNIPPET_LANG.LOV.PLSQL.D
+      pl/sql-code: |
+        DECLARE
+            v_respuesta CLOB;
+            v_raw_sql CLOB;
+            v_chart VARCHAR2(10) := 'NONE';
+        BEGIN
+            IF :5_PROMPT IS NOT NULL THEN
+                
+                -- Anadimos la intervención del usuario. 
+                APEX_COLLECTION.ADD_MEMBER(
+                    p_collection_name => 'CHAT_HISTORY',
+                    p_c001            => 'USER',
+                    p_c002            => :5_PROMPT,
+                    p_c003            => TO_CHAR(SYSDATE, 'HH24:MI:SS')
+                );
+        
+                -- Generamos una sentencia SQL que nos servira para el data report y las graficas
+                v_raw_sql := F_PROMPT_SQL(:5_PROMPT);
+        
+                -- Guardamos el tipo de tabla generada.
+                IF INSTR(v_raw_sql, '/*CHART:BAR*/') > 0 THEN
+                    v_chart := 'BAR';
+                    v_raw_sql := REPLACE(v_raw_sql, '/*CHART:BAR*/', '');
+                ELSIF INSTR(v_raw_sql, '/*CHART:PIE*/') > 0 THEN
+                    v_chart := 'PIE';
+                    v_raw_sql := REPLACE(v_raw_sql, '/*CHART:PIE*/', '');
+                ELSE
+                    v_chart := 'Ninguna';
+                END IF;
+        
+                -- Asignamos los valores finales a los ítems de página
+                :5_SQL_GENERADO := RTRIM(TRIM(v_raw_sql), ';'); 
+                :5_CHART_TYPE := v_chart;
+                v_respuesta := F_PROMPT(:5_PROMPT);
+        
+                IF v_respuesta IS NULL THEN
+                    v_respuesta := 'AVISO: La función se ejecutó, pero la IA ha devuelto un texto vacío (NULL).';
+                END IF;
+                
+                -- Guardamos la respuesta de la IA
+                APEX_COLLECTION.ADD_MEMBER(
+                    p_collection_name => 'CHAT_HISTORY',
+                    p_c001            => 'AI',
+                    p_c002            => v_respuesta,
+                    p_c003            => TO_CHAR(SYSDATE, 'HH24:MI:SS')
+                );
+        
+            END IF;
+        END;
+      items-to-submit: 
+      - 5_PROMPT
+      items-to-return: 
+      - 5_SQL_GENERADO
+      - ' 5_CHART_TYPE'
+      suppress-change-event: false
+
+    execution: 
+      sequence: 20
+      event: Ejecución del PROMPT # 9017841253843831
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+      stop-execution-on-error: true
+      wait-for-result: true
+
+  - # ====== Action: REFRESH CHAT ================================
+    id: 9018319545843836
+    identification: 
+      name: REFRESH CHAT
+      action: Refresh
+
+    settings: 
+      maintain-pagination: false
+
+    affected-elements: 
+      selection-type: Region
+      region: Lectura memoria chat # 9017410355843827
+
+    execution: 
+      sequence: 130
+      event: Ejecución del PROMPT # 9017841253843831
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+
+  - # ====== Action: CLEAR TEXT AREA =============================
+    id: 9018485438843837
+    identification: 
+      name: CLEAR TEXT AREA
+      action: Clear
+
+    affected-elements: 
+      selection-type: Item(s)
+      item(s): 
+      - 5_PROMPT
+
+    execution: 
+      sequence: 140
+      event: Ejecución del PROMPT # 9017841253843831
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+
+  - # ====== Action: Refresh report ==============================
+    id: 12172289324454408
+    identification: 
+      name: Refresh report
+      action: Refresh
+
+    settings: 
+      maintain-pagination: false
+
+    affected-elements: 
+      selection-type: Region
+      region: Data Report # 9184259786067041
+
+    execution: 
+      sequence: 70
+      event: Ejecución del PROMPT # 9017841253843831
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+
+  - # ====== Action: Hide Bar ====================================
+    id: 12173537515454421
+    identification: 
+      name: Hide Bar
+      action: Hide
+
+    affected-elements: 
+      selection-type: Region
+      region: Bar chart # 12172520446454411
+
+    execution: 
+      sequence: 30
+      event: Ejecución del PROMPT # 9017841253843831
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+
+    client-side-condition: 
+      type: Item != Value
+      item: 5_CHART_TYPE
+      value: Bar
+
+  - # ====== Action: Show Bar ====================================
+    id: 12173707061454423
+    identification: 
+      name: Show Bar
+      action: Show
+
+    affected-elements: 
+      selection-type: Region
+      region: Bar chart # 12172520446454411
+
+    execution: 
+      sequence: 80
+      event: Ejecución del PROMPT # 9017841253843831
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+
+    client-side-condition: 
+      type: Item = Value
+      item: 5_CHART_TYPE
+      value: BAR
+
+  - # ====== Action: Refresh Bar =================================
+    id: 12173893319454424
+    identification: 
+      name: Refresh Bar
+      action: Refresh
+
+    settings: 
+      maintain-pagination: false
+
+    affected-elements: 
+      selection-type: Region
+      region: Bar chart # 12172520446454411
+
+    execution: 
+      sequence: 90
+      event: Ejecución del PROMPT # 9017841253843831
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+
+    client-side-condition: 
+      type: Item = Value
+      item: 5_CHART_TYPE
+      value: BAR
+
+  - # ====== Action: Show Pie ====================================
+    id: 12174038553454426
+    identification: 
+      name: Show Pie
+      action: Show
+
+    affected-elements: 
+      selection-type: Region
+      region: Pie Chart # 12173040861454416
+
+    execution: 
+      sequence: 100
+      event: Ejecución del PROMPT # 9017841253843831
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+
+    client-side-condition: 
+      type: Item = Value
+      item: 5_CHART_TYPE
+      value: PIE
+
+  - # ====== Action: Refresh Pie =================================
+    id: 12174135136454427
+    identification: 
+      name: Refresh Pie
+      action: Refresh
+
+    settings: 
+      maintain-pagination: false
+
+    affected-elements: 
+      selection-type: Region
+      region: Pie Chart # 12173040861454416
+
+    execution: 
+      sequence: 120
+      event: Ejecución del PROMPT # 9017841253843831
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+
+    client-side-condition: 
+      type: Item = Value
+      item: 5_CHART_TYPE
+      value: PIE
+
+  - # ====== Action: Hide Pie ====================================
+    id: 12208781556616509
+    identification: 
+      name: Hide Pie
+      action: Hide
+
+    affected-elements: 
+      selection-type: Region
+      region: Pie Chart # 12173040861454416
+
+    execution: 
+      sequence: 60
+      event: Ejecución del PROMPT # 9017841253843831
+      fire-when-event-result-is: True
+      fire-on-initialization: true
+
+    client-side-condition: 
+      type: Item != Value
+      item: 5_CHART_TYPE
+      value: PIE
+
+- # ====== Dynamic Action: SCROLL DOWN =========================
+  id: 9018651469843839
+  identification: 
+    name: SCROLL DOWN
+
+  execution: 
+    sequence: 20
+    event-scope: Static
+    type: Immediate
+
+  when: 
+    event: After Refresh
+    selection-type: Region
+    region: Lectura memoria chat # 9017410355843827
+
+  actions: 
+  - # ====== Action: Scroll down =================================
+    id: 9018781752843840
+    identification: 
+      name: Scroll down
+      action: Execute JavaScript Code
+
+    settings: 
+      code: |
+        // Le damos 100 milisegundos de margen para asegurar que el texto nuevo ya existe en la pantalla
+        setTimeout(function() {
+            // Apuntamos EXACTAMENTE a la caja interna que tiene el scroll
+            var cajaChat = document.querySelector('#region-chat .t-Region-body');
+            
+            // Si la caja existe, bajamos el scroll a tope
+            if (cajaChat) {
+                cajaChat.scrollTop = cajaChat.scrollHeight;
+            }
+        }, 100);
+
+    execution: 
+      sequence: 10
+      event: SCROLL DOWN # 9018651469843839
+      fire-when-event-result-is: True
+      fire-on-initialization: true
+
+- # ====== Dynamic Action: Forzar Borrado de Chat ==============
+  id: 11576560186393008
+  identification: 
+    name: Forzar Borrado de Chat
+
+  execution: 
+    sequence: 30
+    event-scope: Static
+    type: Immediate
+
+  when: 
+    event: Click
+    selection-type: Button
+    button: BTN_LIMPIAR_CHAT # 11576423839393007
+
+  actions: 
+  - # ====== Action: Borrar consulta generada ====================
+    id: 9019622821843849
+    identification: 
+      name: Borrar consulta generada
+      action: Execute Server-side Code
+
+    settings: 
+      language: PE.PROPERTY.SOURCE_SNIPPET_LANG.LOV.PLSQL.D
+      pl/sql-code: ':5_SQL_GENERADO := NULL;'
+      items-to-return: 
+      - 5_SQL_GENERADO
+      suppress-change-event: false
+
+    execution: 
+      sequence: 30
+      event: Forzar Borrado de Chat # 11576560186393008
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+      stop-execution-on-error: true
+      wait-for-result: true
+
+  - # ====== Action: Refresh Data Report =========================
+    id: 9019785878843850
+    identification: 
+      name: Refresh Data Report
+      action: Refresh
+
+    settings: 
+      maintain-pagination: false
+
+    affected-elements: 
+      selection-type: Region
+      region: Data Report # 9184259786067041
+
+    execution: 
+      sequence: 40
+      event: Forzar Borrado de Chat # 11576560186393008
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+
+  - # ====== Action: Borrar Memoria ==============================
+    id: 11576688378393009
+    identification: 
+      name: Borrar Memoria
+      action: Execute Server-side Code
+
+    settings: 
+      language: PE.PROPERTY.SOURCE_SNIPPET_LANG.LOV.PLSQL.D
+      pl/sql-code: |
+        BEGIN
+            IF APEX_COLLECTION.COLLECTION_EXISTS('CHAT_HISTORY') THEN
+            APEX_COLLECTION.TRUNCATE_COLLECTION('CHAT_HISTORY');
+        END IF;
+        END;
+
+    execution: 
+      sequence: 10
+      event: Forzar Borrado de Chat # 11576560186393008
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+      stop-execution-on-error: true
+      wait-for-result: true
+
+  - # ====== Action: Recarga la pantalla =========================
+    id: 11576758143393010
+    identification: 
+      name: Recarga la pantalla
+      action: Refresh
+
+    settings: 
+      maintain-pagination: false
+
+    affected-elements: 
+      selection-type: Region
+      region: Lectura memoria chat # 9017410355843827
+
+    execution: 
+      sequence: 20
+      event: Forzar Borrado de Chat # 11576560186393008
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+
+  - # ====== Action: Hide Pie ====================================
+    id: 12173681078454422
+    identification: 
+      name: Hide Pie
+      action: Hide
+
+    affected-elements: 
+      selection-type: Region
+      region: Pie Chart # 12173040861454416
+
+    execution: 
+      sequence: 80
+      event: Forzar Borrado de Chat # 11576560186393008
+      fire-when-event-result-is: True
+      fire-on-initialization: true
+
+  - # ====== Action: Refresh bar chart ===========================
+    id: 12208176063616503
+    identification: 
+      name: Refresh bar chart
+      action: Refresh
+
+    settings: 
+      maintain-pagination: false
+
+    affected-elements: 
+      selection-type: Region
+      region: Bar chart # 12172520446454411
+
+    execution: 
+      sequence: 50
+      event: Forzar Borrado de Chat # 11576560186393008
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+
+  - # ====== Action: Refresh pie chart ===========================
+    id: 12208244579616504
+    identification: 
+      name: Refresh pie chart
+      action: Refresh
+
+    settings: 
+      maintain-pagination: false
+
+    affected-elements: 
+      selection-type: Region
+      region: Pie Chart # 12173040861454416
+
+    execution: 
+      sequence: 60
+      event: Forzar Borrado de Chat # 11576560186393008
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+
+  - # ====== Action: Hide Bar ====================================
+    id: 12208638889616508
+    identification: 
+      name: Hide Bar
+      action: Hide
+
+    affected-elements: 
+      selection-type: Region
+      region: Pie Chart # 12173040861454416
+
+    execution: 
+      sequence: 70
+      event: Forzar Borrado de Chat # 11576560186393008
+      fire-when-event-result-is: True
+      fire-on-initialization: true
+
+- # ====== Dynamic Action: Ocultar Gráficos al Iniciar =========
+  id: 12174622285454432
+  identification: 
+    name: Ocultar Gráficos al Iniciar
+
+  execution: 
+    sequence: 40
+    event-scope: Static
+
+  when: 
+    event: Page Load
+
+  actions: 
+  - # ====== Action: Hide bar ====================================
+    id: 12174765067454433
+    identification: 
+      name: Hide bar
+      action: Hide
+
+    affected-elements: 
+      selection-type: Region
+      region: Bar chart # 12172520446454411
+
+    execution: 
+      sequence: 10
+      event: Ocultar Gráficos al Iniciar # 12174622285454432
+      fire-when-event-result-is: True
+      fire-on-initialization: true
+
+  - # ====== Action: Hide pie ====================================
+    id: 12174818721454434
+    identification: 
+      name: Hide pie
+      action: Hide
+
+    affected-elements: 
+      selection-type: Region
+      region: Pie Chart # 12173040861454416
+
+    execution: 
+      sequence: 20
+      event: Ocultar Gráficos al Iniciar # 12174622285454432
+      fire-when-event-result-is: True
+      fire-on-initialization: true
+
+processes: 
+- # ====== Process: Crea colección/memoria chat ================
+  id: 9017231215843825
+  identification: 
+    name: Crea colección/memoria chat
+    type: Execute Code
+    execution-chain: None
+
+  source: 
+    location: Local Database
+    language: PL/SQL
+    pl/sql-code: |
+      IF NOT APEX_COLLECTION.COLLECTION_EXISTS('CHAT_HISTORY') THEN
+          APEX_COLLECTION.CREATE_COLLECTION('CHAT_HISTORY');
+      END IF;
+
+  execution: 
+    sequence: 10
+    point: Before Header
+    run-process: Once Per Page Visit (default)
+
+- # ====== Process: Procesar Mensaje ===========================
+  id: 11576896991393011
+  identification: 
+    name: Procesar Mensaje
+    type: Execute Code
+    execution-chain: None
+
+  source: 
+    location: Local Database
+    language: PL/SQL
+    pl/sql-code: |
+      BEGIN
+          -- 1. Solo hacemos cosas si has escrito algo en el cajón
+          IF :1_PROMPT IS NOT NULL THEN
+              
+              -- 2. Guardamos TU mensaje en la memoria del chat
+              APEX_COLLECTION.ADD_MEMBER(
+                  p_collection_name => 'CHAT_HISTORY',
+                  p_c001            => 'Usuario', -- Tu nombre o avatar
+                  p_c002            => :1_PROMPT, -- Lo que has escrito
+                  p_c003            => TO_CHAR(SYSDATE, 'HH24:MI') -- La hora actual
+              );
+      
+              -- 3. Simulamos una respuesta de la IA (hasta que conectemos OCI)
+              APEX_COLLECTION.ADD_MEMBER(
+                  p_collection_name => 'CHAT_HISTORY',
+                  p_c001            => 'IA', -- Nombre de la IA
+                  p_c002            => '¡Hola! Todavía no me has conectado al Mundial, pero te escucho perfectamente. Me has preguntado: "' || :P5_PROMPT || '"',
+                  p_c003            => TO_CHAR(SYSDATE, 'HH24:MI')
+              );
+      
+              -- 4. Borramos el texto del cajón para que puedas hacer otra pregunta
+              :1_PROMPT := NULL;
+              
+          END IF;
+      END;
+
+  execution: 
+    sequence: 10
+    point: Processing
+    run-process: Once Per Page Visit (default)
+
+  error: 
+    display-location: Inline in Notification
+
+  server-side-condition: 
+    when-button-pressed: Submit # 11991152540820989
+

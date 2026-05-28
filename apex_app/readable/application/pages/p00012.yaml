@@ -1,0 +1,1825 @@
+---
+# ====== Page: COPIA SEGURIDAD 2 =============================
+id: 12
+identification: 
+  name: COPIA SEGURIDAD 2
+  alias: COPIA-SEGURIDAD-2
+  title: COPIA SEGURIDAD 2
+
+appearance: 
+  page-mode: Normal
+  page-template: Theme Default
+  template-options: 
+  - '#DEFAULT#'
+
+navigation-menu: 
+  override-user-interface-level: false
+
+navigation: 
+  cursor-focus: Do not focus cursor
+  warn-on-unsaved-changes: true
+
+javascript: 
+  execute-when-page-loads: |
+    // ==========================================
+    // 1. INICIALIZACIÓN PROTEGIDA
+    // ==========================================
+    $(document).ready(function() {
+        var reubicarBotones = function() {
+            var $prompt = $('#5_PROMPT');
+            var $container = $prompt.closest('.t-Form-itemWrapper');
+            var $btnNuevo = $('#btn-nuevo');
+            var $btnSubmit = $('#mi-boton');
+    
+            if ($container.length && $btnNuevo.length && $btnSubmit.length) {
+                $container.append($btnNuevo).append($btnSubmit);
+            }
+        };
+    
+        setTimeout(function() {
+            reubicarBotones();
+            limpiarTodo(); // Inicia la página limpia
+    
+            // Evento para el botón de RECARGA (Gris)
+            $(document).on('click', '#btn-nuevo', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                limpiarTodo();
+                return false;
+            });
+    
+            // Evento para el botón ENVIAR (Balón)
+            $(document).on('click', '#mi-boton', function() {
+                iniciarVisualesCarga();
+            });
+    
+            // Ajuste de altura del textarea
+            $('#5_PROMPT').on('input', function() {
+                this.style.height = '52px';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+        }, 500);
+    });
+    
+    // ==========================================
+    // 2. EVENTO ENTER
+    // ==========================================
+    $(document).off('keydown', '[id="5_PROMPT"]').on('keydown', '[id="5_PROMPT"]', function(e) {
+        if (e.which === 13 && !e.shiftKey) {
+            e.preventDefault(); 
+            $('#mi-boton').click();
+        }
+    });
+    
+    // ==========================================
+    // 3. FUNCIÓN LIMPIAR (REFORZADA CONTRA REBOTES)
+    // ==========================================
+    function limpiarTodo() {
+        // 1. Limpiar campos
+        $('#5_PROMPT').val('').css('height', '52px');
+        $('#chat-box').empty();
+        $('.message-wrapper').remove(); 
+        $('#mi-boton').removeClass('balon-girando'); // <--- NUEVO: Por si acaso, paramos el balón al limpiar
+        
+    }
+    
+    // ==========================================
+    // 4. VISUALES DE CARGA
+    // ==========================================
+    function iniciarVisualesCarga() {
+        var val = $('#5_PROMPT').val().trim();
+        if (val === '') return;
+    
+        $('#chat-box').append('<div class="message-wrapper wrapper-user"><div class="message message-user">'+val+'</div></div>');
+        $('#chat-box').append('<div class="message-wrapper wrapper-agent" id="loading-dots"><div class="message message-agent typing-indicator"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>');
+        
+        $('#mi-boton').css('pointer-events', 'none').css('opacity', '0.5');
+        $('#mi-boton').addClass('balon-girando'); // <--- NUEVO: Ponemos a girar el balón
+        
+        // El reporte se mantiene oculto hasta que el AJAX complete
+        var cb = document.getElementById('chat-box');
+        if(cb) cb.scrollTop = cb.scrollHeight;
+    }
+    
+    // ==========================================
+    // 5. DETECTOR FINALIZACIÓN (MOSTRAR REPORTE) - REFORZADO
+    // ==========================================
+    $(document).ajaxComplete(function(event, xhr, settings) {
+        // 1. Quitar indicadores de carga y restaurar botón
+        $('#loading-dots').remove();
+        $('#mi-boton').css('pointer-events', 'auto').css('opacity', '1');
+        $('#mi-boton').removeClass('balon-girando'); // <--- NUEVO: Paramos el balón al terminar
+        
+        // 2. Limpiar el campo de texto (ahora que ya se procesó)
+        $('#5_PROMPT').val('').css('height', '52px');
+    
+        // 3. MOSTRAR EL REPORTE (Sin condiciones de conteo)
+        var $reporte = $('#reporte-sql');
+        if ($reporte.length) {
+            $reporte.removeClass('oculto-total');
+            // Usamos .show() y forzamos el display block por si acaso
+            $reporte.css('display', 'block').show();
+        }
+        
+        // 4. Scroll al fondo del chat
+        var cb = document.getElementById('chat-box');
+        if(cb) cb.scrollTop = cb.scrollHeight;
+    });
+
+css: 
+  inline: |
+    /*==========================================
+       1. CÁPSULA Y TEXTAREA
+    ========================================== */
+    [id="5_PROMPT_CONTAINER"] .t-Form-itemWrapper {
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+    
+    textarea[id="5_PROMPT"] {
+        min-height: 52px !important;
+        border-radius: 26px !important;
+        padding: 12px 100px 12px 20px !important; 
+        width: 100% !important;
+        box-sizing: border-box !important;
+        background-color: #f9f9f9 !important;
+        border: 1px solid #ccc !important;
+        resize: none !important;
+        line-height: 1.5 !important;
+    }
+    
+    /* ==========================================
+       2. BOTONES (NUEVO Y ENVIAR)
+       ========================================== */
+    #btn-nuevo, #mi-boton {
+        position: absolute !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        z-index: 999 !important;
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    #btn-nuevo { 
+        right: 50px !important; 
+        background-color: #e0e0e0 !important; 
+    }
+    
+    #mi-boton { 
+        right: 10px !important; 
+        outline: none !important;
+        background: transparent !important;
+        cursor: pointer;
+    }
+    
+    #mi-boton .t-Icon, #mi-boton img, #mi-boton .fa {
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1 !important;
+        display: block !important;
+        color: #0071ce !important; 
+        transition: color 0.3s ease !important;
+    }
+    
+    #mi-boton:hover .t-Icon, #mi-boton:hover img, #mi-boton:hover .fa {
+        color: #006400 !important; 
+    }
+    
+    /* ==========================================
+       3. ANIMACIÓN BALÓN GIRANDO (MANUAL)
+       ========================================== */
+    #mi-boton.balon-girando .t-Icon, 
+    #mi-boton.balon-girando img, 
+    #mi-boton.balon-girando .fa {
+        display: inline-block !important;
+        animation: girar 0.8s linear infinite !important;
+        transform-origin: center center !important;
+    }
+    
+    @keyframes girar { 
+        from { transform: rotate(0deg); } 
+        to { transform: rotate(360deg); } 
+    }
+    
+    /* ==========================================
+       4. CHAT Y BURBUJAS
+       ========================================== */
+    .chat-container { 
+        display: flex; 
+        flex-direction: column; 
+        gap: 15px; 
+        width: 100%; 
+        font-family: sans-serif; 
+        padding: 10px; 
+        height: 500px; 
+        overflow-y: auto; 
+        margin-bottom: 20px; 
+    }
+    
+    .message-wrapper { display: flex; width: 100%; }
+    .wrapper-user { justify-content: flex-end; }
+    .wrapper-agent { justify-content: flex-start; }
+    
+    .message { 
+        max-width: 85%; 
+        padding: 12px 16px; 
+        border-radius: 15px; 
+        font-size: 14px; 
+        line-height: 1.4; 
+        box-shadow: 0 1px 2px rgba(0,0,0,0.15); 
+        white-space: pre-wrap !important; 
+    }
+    
+    .message-user { background-color: #dcf8c6; border-bottom-right-radius: 0; color: #000; }
+    .message-agent { background-color: #ffffff; border-bottom-left-radius: 0; color: #000; border: 1px solid #eee; }
+    
+    /* Indicador de carga (puntos) */
+    .typing-indicator { display: flex; gap: 4px; align-items: center; padding: 5px 10px; }
+    .dot { width: 8px; height: 8px; background-color: #999; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
+    .dot:nth-child(1) { animation-delay: -0.32s; }
+    .dot:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+    
+    /* Ocultar elementos nativos molestos */
+    .t-Comments-icon, .t-Comments-userIcon, .u-Processing, .nodatafound { display: none !important; }
+    
+    /* ==========================================
+       COLOR VERDE Y ALINEACIÓN (ESTILO BURBUJA)
+       ========================================== */
+    
+    /* 1. Quitamos los "picos" grises que dibuja APEX por defecto */
+    .t-Comments-body::before, 
+    .t-Comments-body::after {
+        display: none !important;
+    }
+    
+    /* 2. Convertimos la fila en Flexbox para empujar la burbuja a la derecha */
+    .chat-derecha {
+        display: flex !important;
+        justify-content: flex-end !important; /* Empuja todo a la derecha */
+        background: transparent !important;
+        width: 100% !important;
+    }
+    
+    /* 3. Damos forma de burbuja al mensaje del USUARIO (Verde) */
+    .chat-derecha .t-Comments-body {
+        background-color: #e0f7fa !important; /* Todo del mismo verde claro */
+        border: none !important; /* Sin bordes grises feos */
+        border-radius: 15px !important;
+        border-bottom-right-radius: 0 !important; /* Forma de burbuja */
+        padding: 12px 16px !important;
+        max-width: 80% !important; /* Para que textos muy largos no ocupen toda la pantalla */
+        display: inline-block !important; /* Se encoge al tamaño del texto */
+        box-shadow: 0 1px 2px rgba(0,0,0,0.15) !important;
+    }
+    
+    /* 4. Alineamos la fecha/nombre (USER - 12:04:26) a la derecha */
+    .chat-derecha .t-Comments-info {
+        text-align: right !important;
+        margin-bottom: 5px !important;
+    }
+    
+    /* ==========================================
+       FORMA DE BURBUJA PARA LA IA (IZQUIERDA)
+       ========================================== */
+    
+    /* Repetimos la lógica pero hacia la izquierda y en blanco/gris */
+    .chat-izquierda {
+        display: flex !important;
+        justify-content: flex-start !important; /* Se queda a la izquierda */
+        background: transparent !important;
+        width: 100% !important;
+    }
+    
+    .chat-izquierda .t-Comments-body {
+        background-color: #ffffff !important;
+        border: 1px solid #eee !important;
+        border-radius: 15px !important;
+        border-bottom-left-radius: 0 !important;
+        padding: 12px 16px !important;
+        max-width: 80% !important;
+        display: inline-block !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.15) !important;
+    }
+    
+    
+    /* ==========================================
+       5. TÍTULO DEL DATA REPORT
+       ========================================== */
+    #reporte-sql .t-Region-title {
+        color: #0277bd !important; /* Azul petróleo oscuro para hacer juego con el menú */
+        font-weight: 700 !important; /* Lo hacemos un poquito más "gordito" (negrita) para que destaque */
+        font-size: 16px !important; /* Tamaño opcional, por si lo quieres más grande */
+    }
+    
+    /* Título de la Región de Chat */
+    #region-chat .t-Region-title {
+        color: #0277bd !important; /* El mismo azul petróleo oscuro */
+        font-weight: 700 !important;
+        font-size: 16px !important;
+    }
+    
+    /* ==========================================
+       6. CABECERA DE LAS REGIONES (HEADER)
+       ========================================== */
+    
+    /* Cambiamos el fondo de la banda donde va el título */
+    #region-chat .t-Region-header,
+    #reporte-sql .t-Region-header {
+        background-color: #f0f9fa !important; /* Un azul cian debilísimo para el fondo de la banda */
+        border-bottom: 2px solid #00838f !important; /* Una línea fina abajo del color del título */
+    }
+    
+    /* Aseguramos que el título se vea perfecto sobre ese fondo */
+    #region-chat .t-Region-title,
+    #reporte-sql .t-Region-title {
+        color: #00838f !important;
+        font-weight: 700 !important;
+    }
+
+security: 
+  authentication: Page Requires Authentication
+  deep-linking: Application Default
+  page-access-protection: Arguments Must Have Checksum
+  form-auto-complete: Off
+  browser-cache: Application Default
+
+session-management: 
+  rejoin-sessions: Application Default
+
+advanced: 
+  enable-duplicate-page-submissions: Yes - Enable page to be re-posted
+  reload-on-submit: Only for Success
+
+server-cache: 
+  caching: Disabled
+
+regions: 
+- # ====== Region: Lectura memoria chat ========================
+  id: 21238516759064454
+  identification: 
+    name: Lectura memoria chat
+    title: Where do we start?
+    type: Classic Report
+
+  source: 
+    location: Local Database
+    type: SQL Query
+    sql-query: |
+      SELECT 
+          c001 AS User_name,
+          c002 AS comment_text,
+          c003 AS comment_date,
+          CASE 
+              WHEN c001 = 'USER' THEN 'chat-derecha'
+              ELSE 'chat-izquierda'
+          END AS COMMENT_MODIFIERS,
+          NULL AS attribute_1,
+          NULL AS attribute_2,
+          NULL AS attribute_3,
+          NULL AS attribute_4,
+          NULL AS actions
+      FROM apex_collections
+      WHERE collection_name = 'CHAT_HISTORY'
+      ORDER BY seq_id ASC;
+
+  order-by: 
+    type: None
+
+  layout: 
+    sequence: 40
+    parent-region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Standard
+    template-options: 
+    - '#DEFAULT#'
+    - t-Region--scrollBody
+    css-classes: 
+    - caja-chat-scroll
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    static-id: region-chat
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  server-cache: 
+    caching: Disabled
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    layout: 
+      number-of-rows-type: Static Value
+      number-of-rows: 1000
+
+    appearance: 
+      template-type: Theme
+      template: Comments
+      template-options: 
+      - '#DEFAULT#'
+      - t-Comments--chat
+
+    pagination: 
+      type: No Pagination (Show All Rows)
+      partial-page-refresh: true
+
+    performance: 
+      lazy-loading: false
+
+    break-formatting: 
+      break-columns: No Break
+
+    advanced: 
+      strip-html: false
+      sort-nulls: Last
+
+    heading: 
+      type: Custom Headings
+
+    download: 
+      csv-export-enabled: false
+
+    printing: 
+      enabled: false
+
+  columns: 
+  - # ====== Column: USER_NAME ===================================
+    id: 12228927998220602
+    identification: 
+      column-name: USER_NAME
+      type: Plain Text
+
+    heading: 
+      heading: User Name
+      alignment: start
+
+    layout: 
+      sequence: 10
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COMMENT_TEXT ================================
+    id: 12229325448220602
+    identification: 
+      column-name: COMMENT_TEXT
+      type: Plain Text
+
+    heading: 
+      heading: Comment Text
+      alignment: start
+
+    layout: 
+      sequence: 20
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COMMENT_DATE ================================
+    id: 12229790114220601
+    identification: 
+      column-name: COMMENT_DATE
+      type: Plain Text
+
+    heading: 
+      heading: Comment Date
+      alignment: start
+
+    layout: 
+      sequence: 30
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COMMENT_MODIFIERS ===========================
+    id: 12230107382220601
+    identification: 
+      column-name: COMMENT_MODIFIERS
+      type: Plain Text
+
+    heading: 
+      heading: Comment Modifiers
+      alignment: start
+
+    layout: 
+      sequence: 90
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: ATTRIBUTE_1 =================================
+    id: 12230526622220601
+    identification: 
+      column-name: ATTRIBUTE_1
+      type: Plain Text
+
+    heading: 
+      heading: Attribute 1
+      alignment: start
+
+    layout: 
+      sequence: 40
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: ATTRIBUTE_2 =================================
+    id: 12230966025220601
+    identification: 
+      column-name: ATTRIBUTE_2
+      type: Plain Text
+
+    heading: 
+      heading: Attribute 2
+      alignment: start
+
+    layout: 
+      sequence: 50
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: ATTRIBUTE_3 =================================
+    id: 12231322025220601
+    identification: 
+      column-name: ATTRIBUTE_3
+      type: Plain Text
+
+    heading: 
+      heading: Attribute 3
+      alignment: start
+
+    layout: 
+      sequence: 60
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: ATTRIBUTE_4 =================================
+    id: 12231784878220601
+    identification: 
+      column-name: ATTRIBUTE_4
+      type: Plain Text
+
+    heading: 
+      heading: Attribute 4
+      alignment: start
+
+    layout: 
+      sequence: 70
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: ACTIONS =====================================
+    id: 12232124380220600
+    identification: 
+      column-name: ACTIONS
+      type: Plain Text
+
+    heading: 
+      heading: Actions
+      alignment: start
+
+    layout: 
+      sequence: 80
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+- # ====== Region: Data Report =================================
+  id: 21405366189287668
+  identification: 
+    name: Data Report
+    type: Classic Report
+
+  source: 
+    location: Local Database
+    type: Function Body returning SQL Query
+    language: PL/SQL
+    pl/sql-function-body-returning-sql-query: |
+      IF :5_SQL_GENERADO IS NOT NULL THEN
+          RETURN :5_SQL_GENERADO;
+      ELSE
+          RETURN 'SELECT ''Ask a question to see the data'' AS INFO FROM DUAL';
+      END IF;
+    page-items-to-submit: 
+    - 5_SQL_GENERADO
+    use-generic-column-names: true
+    generic-column-count: 15
+
+  order-by: 
+    type: None
+
+  layout: 
+    sequence: 120
+    parent-region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Standard
+    template-options: 
+    - '#DEFAULT#'
+    - t-Region--scrollBody
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    static-id: reporte-sql
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  server-cache: 
+    caching: Disabled
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    layout: 
+      number-of-rows-type: Static Value
+      number-of-rows: 15
+
+    appearance: 
+      template-type: Theme
+      template: Standard
+      template-options: 
+      - '#DEFAULT#'
+      - t-Report--altRowsDefault
+      - t-Report--rowHighlight
+
+    pagination: 
+      type: Row Ranges X to Y (with next and previous links)
+      display-position: Bottom - Right
+      partial-page-refresh: true
+
+    performance: 
+      lazy-loading: false
+
+    break-formatting: 
+      break-columns: No Break
+
+    advanced: 
+      strip-html: false
+      sort-nulls: Last
+
+    heading: 
+      type: Column Names
+
+    download: 
+      csv-export-enabled: false
+
+    printing: 
+      enabled: false
+
+  columns: 
+  - # ====== Column: COL01 =======================================
+    id: 12222523813220608
+    identification: 
+      column-name: COL01
+      type: Plain Text
+
+    heading: 
+      heading: Col01
+      alignment: start
+
+    layout: 
+      sequence: 10
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL02 =======================================
+    id: 12222900481220606
+    identification: 
+      column-name: COL02
+      type: Plain Text
+
+    heading: 
+      heading: Col02
+      alignment: start
+
+    layout: 
+      sequence: 20
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL03 =======================================
+    id: 12223343802220606
+    identification: 
+      column-name: COL03
+      type: Plain Text
+
+    heading: 
+      heading: Col03
+      alignment: start
+
+    layout: 
+      sequence: 30
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL04 =======================================
+    id: 12223742535220606
+    identification: 
+      column-name: COL04
+      type: Plain Text
+
+    heading: 
+      heading: Col04
+      alignment: start
+
+    layout: 
+      sequence: 40
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL05 =======================================
+    id: 12224133869220606
+    identification: 
+      column-name: COL05
+      type: Plain Text
+
+    heading: 
+      heading: Col05
+      alignment: start
+
+    layout: 
+      sequence: 50
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL06 =======================================
+    id: 12224543028220606
+    identification: 
+      column-name: COL06
+      type: Plain Text
+
+    heading: 
+      heading: Col06
+      alignment: start
+
+    layout: 
+      sequence: 60
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL07 =======================================
+    id: 12224957133220605
+    identification: 
+      column-name: COL07
+      type: Plain Text
+
+    heading: 
+      heading: Col07
+      alignment: start
+
+    layout: 
+      sequence: 70
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL08 =======================================
+    id: 12225389945220605
+    identification: 
+      column-name: COL08
+      type: Plain Text
+
+    heading: 
+      heading: Col08
+      alignment: start
+
+    layout: 
+      sequence: 80
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL09 =======================================
+    id: 12225760666220605
+    identification: 
+      column-name: COL09
+      type: Plain Text
+
+    heading: 
+      heading: Col09
+      alignment: start
+
+    layout: 
+      sequence: 90
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL10 =======================================
+    id: 12226151818220605
+    identification: 
+      column-name: COL10
+      type: Plain Text
+
+    heading: 
+      heading: Col10
+      alignment: start
+
+    layout: 
+      sequence: 100
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL11 =======================================
+    id: 12226572325220605
+    identification: 
+      column-name: COL11
+      type: Plain Text
+
+    heading: 
+      heading: Col11
+      alignment: start
+
+    layout: 
+      sequence: 110
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL12 =======================================
+    id: 12226955682220605
+    identification: 
+      column-name: COL12
+      type: Plain Text
+
+    heading: 
+      heading: Col12
+      alignment: start
+
+    layout: 
+      sequence: 120
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL13 =======================================
+    id: 12227395028220604
+    identification: 
+      column-name: COL13
+      type: Plain Text
+
+    heading: 
+      heading: Col13
+      alignment: start
+
+    layout: 
+      sequence: 130
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL14 =======================================
+    id: 12227757076220604
+    identification: 
+      column-name: COL14
+      type: Plain Text
+
+    heading: 
+      heading: Col14
+      alignment: start
+
+    layout: 
+      sequence: 140
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: COL15 =======================================
+    id: 12228151707220604
+    identification: 
+      column-name: COL15
+      type: Plain Text
+
+    heading: 
+      heading: Col15
+      alignment: start
+
+    layout: 
+      sequence: 150
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: false
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+page-items: 
+- # ====== Page Item: 12_5_SQL_GENERADO ========================
+  id: 21416791705287637
+  identification: 
+    name: 12_5_SQL_GENERADO
+    type: Hidden
+
+  settings: 
+    value-protected: true
+
+  layout: 
+    sequence: 110
+    region: No Parent
+    slot: BODY
+
+  advanced: 
+    warn-on-unsaved-changes: Page Default
+
+  source: 
+    type: Null
+    used: Only when current value in session state is null
+
+  session-state: 
+    data-type: VARCHAR2
+    storage: Per Session (Persistent)
+
+  security: 
+    session-state-protection: Unrestricted
+    store-value-encrypted-in-session-state: true
+    restricted-characters: All characters can be saved.
+
+- # ====== Page Item: 12_5_PROMPT ==============================
+  id: 35809109592434551
+  identification: 
+    name: 12_5_PROMPT
+    type: Textarea
+
+  label: 
+    label: 'Ask our AI assistant:'
+    alignment: Left
+
+  settings: 
+    resizable: true
+    auto-height: true
+    character-counter: false
+    trim-spaces: Leading and Trailing
+
+  layout: 
+    sequence: 80
+    region: No Parent
+    slot: BODY
+    alignment: Left
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: 12
+    label-column-span: 0
+
+  appearance: 
+    template: Hidden
+    template-options: 
+    - '#DEFAULT#'
+    - t-Form-fieldContainer--stretchInputs
+    width: 30
+    height: 5
+    value-placeholder: Chat with our AI Assistant!
+
+  validation: 
+    value-required: false
+
+  advanced: 
+    css-classes: 
+    - chat-input-container
+    warn-on-unsaved-changes: Page Default
+
+  source: 
+    type: Null
+    used: Only when current value in session state is null
+
+  session-state: 
+    data-type: VARCHAR2
+    storage: Per Session (Persistent)
+
+  quick-picks: 
+    show-quick-picks: false
+
+  security: 
+    session-state-protection: Unrestricted
+    store-value-encrypted-in-session-state: true
+    restricted-characters: All characters can be saved.
+
+buttons: 
+- # ====== Button: BTN_LIMPIAR_CHAT ============================
+  id: 12221492989220616
+  identification: 
+    button-name: BTN_LIMPIAR_CHAT
+    label: Limpiar Chat
+
+  layout: 
+    sequence: 90
+    region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+    alignment: Left center
+
+  appearance: 
+    button-template: Icon
+    hot: false
+    template-options: 
+    - '#DEFAULT#'
+    icon: fa-refresh
+
+  behavior: 
+    action: Defined by Dynamic Action
+    execute-validations: true
+
+  advanced: 
+    static-id: btn-nuevo
+
+- # ====== Button: Submit ======================================
+  id: 12221841397220613
+  identification: 
+    button-name: Submit
+    label: Submit
+
+  layout: 
+    sequence: 100
+    region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: false
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+    alignment: Left center
+
+  appearance: 
+    button-template: Icon
+    hot: true
+    template-options: 
+    - '#DEFAULT#'
+    - t-Button--large
+    - t-Button--success
+    - t-Button--simple
+    - t-Button--hoverIconSpin
+    icon: fa-soccer-ball-o
+
+  behavior: 
+    action: Defined by Dynamic Action
+    execute-validations: true
+
+  advanced: 
+    static-id: mi-boton
+    custom-attributes: 
+    - data-loading-icon=""
+
+dynamic-actions: 
+- # ====== Dynamic Action: Forzar Borrado de Chat ==============
+  id: 12234154286220594
+  identification: 
+    name: Forzar Borrado de Chat
+
+  execution: 
+    sequence: 30
+    event-scope: Static
+    type: Immediate
+
+  when: 
+    event: Click
+    selection-type: Button
+    button: BTN_LIMPIAR_CHAT # 12221492989220616
+
+  actions: 
+  - # ====== Action: Borrar Memoria ==============================
+    id: 12234672185220593
+    identification: 
+      name: Borrar Memoria
+      action: Execute Server-side Code
+
+    settings: 
+      language: PE.PROPERTY.SOURCE_SNIPPET_LANG.LOV.PLSQL.D
+      pl/sql-code: |
+        BEGIN
+            IF APEX_COLLECTION.COLLECTION_EXISTS('CHAT_HISTORY') THEN
+            APEX_COLLECTION.TRUNCATE_COLLECTION('CHAT_HISTORY');
+        END IF;
+        END;
+
+    execution: 
+      sequence: 10
+      event: Forzar Borrado de Chat # 12234154286220594
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+      stop-execution-on-error: true
+      wait-for-result: true
+
+  - # ====== Action: Recarga la pantalla =========================
+    id: 12235184950220592
+    identification: 
+      name: Recarga la pantalla
+      action: Refresh
+
+    settings: 
+      maintain-pagination: false
+
+    affected-elements: 
+      selection-type: Region
+      region: Lectura memoria chat # 21238516759064454
+
+    execution: 
+      sequence: 20
+      event: Forzar Borrado de Chat # 12234154286220594
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+
+  - # ====== Action: Borrar Data Report ==========================
+    id: 12235693759220592
+    identification: 
+      name: Borrar Data Report
+      action: Execute Server-side Code
+
+    settings: 
+      language: PE.PROPERTY.SOURCE_SNIPPET_LANG.LOV.PLSQL.D
+      pl/sql-code: ':5_SQL_GENERADO := NULL;'
+      items-to-return: 
+      - 5_SQL_GENERADO
+      suppress-change-event: false
+
+    execution: 
+      sequence: 30
+      event: Forzar Borrado de Chat # 12234154286220594
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+      stop-execution-on-error: true
+      wait-for-result: true
+
+  - # ====== Action: Refresh Data Report =========================
+    id: 12236134873220592
+    identification: 
+      name: Refresh Data Report
+      action: Refresh
+
+    settings: 
+      maintain-pagination: false
+
+    affected-elements: 
+      selection-type: Region
+      region: Data Report # 21405366189287668
+
+    execution: 
+      sequence: 40
+      event: Forzar Borrado de Chat # 12234154286220594
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+
+- # ====== Dynamic Action: SCROLL DOWN =========================
+  id: 12236513557220592
+  identification: 
+    name: SCROLL DOWN
+
+  execution: 
+    sequence: 20
+    event-scope: Static
+    type: Immediate
+
+  when: 
+    event: After Refresh
+    selection-type: Region
+    region: Lectura memoria chat # 21238516759064454
+
+  actions: 
+  - # ====== Action: Scroll down =================================
+    id: 12237053259220591
+    identification: 
+      name: Scroll down
+      action: Execute JavaScript Code
+
+    settings: 
+      code: |
+        // Buscamos la caja que tiene el scroll (la clase que creamos en el paso anterior)
+        var cajaChat = document.querySelector('.caja-chat-scroll');
+        
+        // Si la caja existe, movemos la barra del scroll hasta la altura total del contenido
+        if (cajaChat) {
+            cajaChat.scrollTop = cajaChat.scrollHeight;
+        }
+        
+        
+
+    execution: 
+      sequence: 10
+      event: SCROLL DOWN # 12236513557220592
+      fire-when-event-result-is: True
+      fire-on-initialization: true
+
+- # ====== Dynamic Action: Ejecución del PROMPT ================
+  id: 12237432564220591
+  identification: 
+    name: Ejecución del PROMPT
+
+  execution: 
+    sequence: 10
+    event-scope: Static
+    type: Immediate
+
+  when: 
+    event: Click
+    selection-type: Button
+    button: Submit # 12221841397220613
+
+  actions: 
+  - # ====== Action: PROMPT_EX ===================================
+    id: 12237943201220591
+    identification: 
+      name: PROMPT_EX
+      action: Execute Server-side Code
+
+    settings: 
+      language: PE.PROPERTY.SOURCE_SNIPPET_LANG.LOV.PLSQL.D
+      pl/sql-code: |
+        DECLARE
+            v_respuesta CLOB;
+        BEGIN
+            IF :5_PROMPT IS NOT NULL THEN
+                
+                -- 1. [ALBERTO] Guardamos la pregunta del USUARIO
+                APEX_COLLECTION.ADD_MEMBER(
+                    p_collection_name => 'CHAT_HISTORY',
+                    p_c001            => 'USER',
+                    p_c002            => :5_PROMPT,
+                    p_c003            => TO_CHAR(SYSDATE, 'HH24:MI:SS')
+                );
+        
+                -- 2. [TU NUEVA LÍNEA] Generamos el SQL para el reporte
+                -- Esta línea es la que hace que la tabla "sepa" qué mostrar
+                :5_SQL_GENERADO := F_PROMPT_SQL(:5_PROMPT);
+        
+                -- 3. [ALBERTO] Llamamos a la función que narra el chat
+                v_respuesta := F_PROMPT(:5_PROMPT);
+        
+                IF v_respuesta IS NULL THEN
+                    v_respuesta := '🟡 AVISO: La función se ejecutó, pero la IA ha devuelto un texto vacío (NULL).';
+                END IF;
+                
+                -- 4. [ALBERTO] Guardamos la respuesta de la IA
+                APEX_COLLECTION.ADD_MEMBER(
+                    p_collection_name => 'CHAT_HISTORY',
+                    p_c001            => 'AI',
+                    p_c002            => v_respuesta,
+                    p_c003            => TO_CHAR(SYSDATE, 'HH24:MI:SS')
+                );
+        
+            END IF;
+        END;
+      items-to-submit: 
+      - 5_PROMPT
+      items-to-return: 
+      - 5_SQL_GENERADO
+      suppress-change-event: false
+
+    execution: 
+      sequence: 20
+      event: Ejecución del PROMPT # 12237432564220591
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+      stop-execution-on-error: true
+      wait-for-result: true
+
+  - # ====== Action: REFRESH CHAT ================================
+    id: 12238456925220591
+    identification: 
+      name: REFRESH CHAT
+      action: Refresh
+
+    settings: 
+      maintain-pagination: false
+
+    affected-elements: 
+      selection-type: Region
+      region: Lectura memoria chat # 21238516759064454
+
+    execution: 
+      sequence: 30
+      event: Ejecución del PROMPT # 12237432564220591
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+
+  - # ====== Action: Refresh =====================================
+    id: 12238980387220591
+    identification: 
+      name: Refresh
+      action: Refresh
+
+    settings: 
+      maintain-pagination: false
+
+    affected-elements: 
+      selection-type: Region
+      region: Data Report # 21405366189287668
+
+    execution: 
+      sequence: 50
+      event: Ejecución del PROMPT # 12237432564220591
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+
+  - # ====== Action: CLEAR TEXT AREA =============================
+    id: 12239433016220590
+    identification: 
+      name: CLEAR TEXT AREA
+      action: Clear
+
+    affected-elements: 
+      selection-type: Item(s)
+      item(s): 
+      - 5_PROMPT
+
+    execution: 
+      sequence: 40
+      event: Ejecución del PROMPT # 12237432564220591
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+
+processes: 
+- # ====== Process: Crea colección/memoria chat ================
+  id: 12233385092220595
+  identification: 
+    name: Crea colección/memoria chat
+    type: Execute Code
+    execution-chain: None
+
+  source: 
+    location: Local Database
+    language: PL/SQL
+    pl/sql-code: |
+      IF NOT APEX_COLLECTION.COLLECTION_EXISTS('CHAT_HISTORY') THEN
+          APEX_COLLECTION.CREATE_COLLECTION('CHAT_HISTORY');
+      END IF;
+
+  execution: 
+    sequence: 10
+    point: Before Header
+    run-process: Once Per Page Visit (default)
+
+- # ====== Process: Procesar Mensaje ===========================
+  id: 12233775599220594
+  identification: 
+    name: Procesar Mensaje
+    type: Execute Code
+    execution-chain: None
+
+  source: 
+    location: Local Database
+    language: PL/SQL
+    pl/sql-code: |
+      BEGIN
+          -- 1. Solo hacemos cosas si has escrito algo en el cajón
+          IF :1_PROMPT IS NOT NULL THEN
+              
+              -- 2. Guardamos TU mensaje en la memoria del chat
+              APEX_COLLECTION.ADD_MEMBER(
+                  p_collection_name => 'CHAT_HISTORY',
+                  p_c001            => 'Usuario', -- Tu nombre o avatar
+                  p_c002            => :1_PROMPT, -- Lo que has escrito
+                  p_c003            => TO_CHAR(SYSDATE, 'HH24:MI') -- La hora actual
+              );
+      
+              -- 3. Simulamos una respuesta de la IA (hasta que conectemos OCI)
+              APEX_COLLECTION.ADD_MEMBER(
+                  p_collection_name => 'CHAT_HISTORY',
+                  p_c001            => 'IA', -- Nombre de la IA
+                  p_c002            => '¡Hola! Todavía no me has conectado al Mundial, pero te escucho perfectamente. Me has preguntado: "' || :P12_PROMPT || '"',
+                  p_c003            => TO_CHAR(SYSDATE, 'HH24:MI')
+              );
+      
+              -- 4. Borramos el texto del cajón para que puedas hacer otra pregunta
+              :1_PROMPT := NULL;
+              
+          END IF;
+      END;
+
+  execution: 
+    sequence: 10
+    point: Processing
+    run-process: Once Per Page Visit (default)
+
+  error: 
+    display-location: Inline in Notification
+
+  server-side-condition: 
+    when-button-pressed: Submit # 12221841397220613
+

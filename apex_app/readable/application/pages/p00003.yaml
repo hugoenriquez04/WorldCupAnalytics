@@ -1,0 +1,1148 @@
+---
+# ====== Page: WC2026 Predictions ============================
+id: 3
+identification: 
+  name: WC2026 Predictions
+  alias: WC2026-PREDICTIONS
+  title: WC2026 Predictions
+
+appearance: 
+  page-mode: Normal
+  page-template: Theme Default
+  template-options: 
+  - '#DEFAULT#'
+
+navigation-menu: 
+  override-user-interface-level: false
+
+navigation: 
+  cursor-focus: Do not focus cursor
+  warn-on-unsaved-changes: true
+
+css: 
+  inline: |
+    #region-brackets .t-Region-title,
+    #region-grupos .t-Region-title {
+        color: #ffffff !important; 
+        font-weight: 700 !important;
+        font-size: 16px !important;
+    }
+    
+    #region-brackets .t-Region-header,
+    #region-grupos .t-Region-header {
+        background-color: #0b607c !important; 
+        border-bottom: none !important; 
+    }
+
+security: 
+  authentication: Page Requires Authentication
+  deep-linking: Application Default
+  page-access-protection: Arguments Must Have Checksum
+  form-auto-complete: Off
+  browser-cache: Application Default
+
+session-management: 
+  rejoin-sessions: Application Default
+
+advanced: 
+  enable-duplicate-page-submissions: Yes - Enable page to be re-posted
+  reload-on-submit: Only for Success
+
+server-cache: 
+  caching: Disabled
+
+regions: 
+- # ====== Region: Groups ======================================
+  id: 12209326912616515
+  identification: 
+    name: Groups
+    title: Group Stage
+    type: Dynamic Content
+
+  source: 
+    language: PL/SQL
+    pl/sql-function-body-returning-a-clob: |
+      DECLARE
+          -- Definimos la variable CLOB que contendrá todo el HTML
+          v_html       CLOB; 
+          v_posicion   NUMBER;
+          
+          -- Colores
+          v_bg_general VARCHAR2(50) := '#001520';
+          v_card_bg    VARCHAR2(50) := '#003a4d';
+          v_border     VARCHAR2(50) := '#00838f';
+          v_accent     VARCHAR2(50) := '#FFD700';
+      
+          CURSOR c_grupos IS
+              SELECT DISTINCT GROUP_ID FROM GROUP_STAGE_PREDICTIONS ORDER BY GROUP_ID;
+      
+          CURSOR c_equipos(p_grupo VARCHAR2) IS
+              WITH Partidos_Desdoblados AS (
+                  SELECT GROUP_ID, HOME_TEAM as EQUIPO,
+                      CASE WHEN PREDICCION_NUMERICA > 0.5 THEN 3 
+                           WHEN PREDICCION_NUMERICA BETWEEN -0.5 AND 0.5 THEN 1 ELSE 0 END as PUNTOS
+                  FROM GROUP_STAGE_PREDICTIONS WHERE GROUP_ID = p_grupo
+                  UNION ALL
+                  SELECT GROUP_ID, AWAY_TEAM as EQUIPO,
+                      CASE WHEN PREDICCION_NUMERICA < -0.5 THEN 3 
+                           WHEN PREDICCION_NUMERICA BETWEEN -0.5 AND 0.5 THEN 1 ELSE 0 END as PUNTOS
+                  FROM GROUP_STAGE_PREDICTIONS WHERE GROUP_ID = p_grupo
+              )
+              SELECT EQUIPO, SUM(PUNTOS) as PUNTOS_TOTALES
+              FROM Partidos_Desdoblados
+              GROUP BY EQUIPO
+              ORDER BY PUNTOS_TOTALES DESC;
+      
+      BEGIN
+          -- Inicializamos el CLOB
+          DBMS_LOB.CREATETEMPORARY(v_html, FALSE);
+      
+          -- Empezamos a concatenar el HTML en la variable v_html
+          v_html := '<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 20px; background: ' || v_bg_general || '; border-radius: 12px; min-width: 900px;">';
+          
+          FOR r_grupo IN c_grupos LOOP
+              v_html := v_html || '<div style="background: ' || v_card_bg || '; border: 1px solid ' || v_border || '; border-radius: 8px; padding: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">';
+              v_html := v_html || '<h3 style="color: ' || v_accent || '; margin-top: 0; margin-bottom: 12px; text-align: center; border-bottom: 1px solid ' || v_border || '; padding-bottom: 8px;">GROUP ' || r_grupo.GROUP_ID || '</h3>';
+              v_html := v_html || '<table style="width: 100%; color: #ffffff; border-collapse: collapse; font-family: sans-serif; font-size: 14px;">';
+              v_html := v_html || '<thead><tr style="color: #a09eb5; text-align: left; border-bottom: 1px solid #004f68;">';
+              v_html := v_html || '<th style="padding: 6px 4px; width: 20px;">#</th><th style="padding: 6px 4px;">National Team</th><th style="padding: 6px 4px; text-align: center;">Pts</th>';
+              v_html := v_html || '</tr></thead><tbody>';
+              
+              v_posicion := 1;
+              FOR r_equipo IN c_equipos(r_grupo.GROUP_ID) LOOP
+                  v_html := v_html || '<tr style="' || CASE WHEN v_posicion <= 2 THEN 'font-weight: bold; color: #ffffff;' ELSE 'color: #cbd5e1;' END || ' border-bottom: 1px solid rgba(0,131,143,0.3);">';
+                  v_html := v_html || '<td style="padding: 8px 4px;">' || v_posicion || '</td>';
+                  v_html := v_html || '<td style="padding: 8px 4px;">' || r_equipo.EQUIPO || '</td>';
+                  v_html := v_html || '<td style="padding: 8px 4px; text-align: center; color: ' || v_accent || ';">' || r_equipo.PUNTOS_TOTALES || '</td>';
+                  v_html := v_html || '</tr>';
+                  v_posicion := v_posicion + 1;
+              END LOOP;
+              
+              v_html := v_html || '</tbody></table></div>'; 
+          END LOOP;
+          
+          v_html := v_html || '</div>';
+      
+          -- FINALMENTE: Devolvemos el CLOB generado
+          RETURN v_html;
+      END;
+
+  layout: 
+    sequence: 10
+    parent-region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Standard
+    template-options: 
+    - '#DEFAULT#'
+    - t-Region--scrollBody
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    static-id: region-grupos
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  server-cache: 
+    caching: Disabled
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    performance: 
+      lazy-loading: false
+
+- # ====== Region: Buscador partidos ===========================
+  id: 12209438294616516
+  identification: 
+    name: Buscador partidos
+    title: 'Search for the exact result (group stage matches only):'
+    type: Interactive Report
+
+  source: 
+    location: Local Database
+    type: SQL Query
+    sql-query: |
+      SELECT 
+          GROUP_ID AS "GROUP",
+          DATE_RW AS MATCH_DATE,
+          HOME_TEAM,
+          AWAY_TEAM,
+          ROUND(PREDICCION_NUMERICA, 2) AS GOAL_DIFFERENCE,
+          CASE 
+              WHEN PREDICCION_NUMERICA > 0.5 THEN HOME_TEAM || ' Wins'
+              WHEN PREDICCION_NUMERICA < -0.5 THEN AWAY_TEAM || ' Wins'
+              ELSE 'Draw'
+          END AS EXPECTED_RESULT
+      FROM GROUP_STAGE_PREDICTIONS
+      ORDER BY GROUP_ID ASC, DATE_RW ASC
+
+  layout: 
+    sequence: 10
+    parent-region: Groups # 12209326912616515
+    slot: SUB_REGIONS
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Interactive Report
+    template-options: 
+    - '#DEFAULT#'
+    - t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    static-id: region-bracket
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  server-cache: 
+    caching: Disabled
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    id: 12211480522616536
+    link: 
+      link-column: Exclude Link Column
+
+    pagination: 
+      type: Row Ranges X to Y
+      display-position: Bottom - Right
+
+    performance: 
+      lazy-loading: false
+      maximum-rows-to-process: 1000000
+
+    search-bar: 
+      include-search-bar: true
+      search-field: true
+      finder-drop-down: true
+      reports-select-list: true
+      rows-per-page-selector: false
+
+    actions-menu: 
+      include-actions-menu: true
+      filter: true
+      select-columns: true
+      rows-per-page: true
+      sort: true
+      control-break: true
+      highlight: true
+      compute: true
+      aggregate: true
+      chart: true
+      group-by: true
+      pivot: true
+      flashback: true
+      save-report: true
+      save-public-report: false
+      reset: true
+      help: true
+      download: true
+      subscription: true
+
+    download: 
+      formats: 
+      - CSV
+      - HTML
+      - Excel
+      - PDF
+      send-as-email: true
+
+    heading: 
+      fixed-to: Page
+
+    icon-view: 
+      show: false
+
+    detail-view: 
+      show: false
+
+    saved-reports: 
+    - # ====== Saved Report: Primary Report ========================
+      id: 12390694373785949
+      identification: 
+        name: Primary Report
+        alias: 123907
+
+    columns: 
+    - # ====== Column: GROUP =======================================
+      id: 12211540107616537
+      identification: 
+        column-name: GROUP
+        type: Plain Text
+
+      heading: 
+        heading: Group
+        alignment: start
+
+      single-row-view: 
+        use-column-heading: true
+
+      layout: 
+        sequence: 10
+        column-alignment: start
+
+      accessibility: 
+        value-identifies-row: false
+
+      source: 
+        primary-key: false
+
+      column-filter: 
+        type: Default Based on Column Type
+
+      enable-users-to: 
+        hide: true
+        sort: true
+        filter: true
+        highlight: true
+        control-break: true
+        aggregate: true
+        compute: true
+        chart: true
+        group-by: true
+        pivot: true
+
+      security: 
+        escape-special-characters: true
+
+    - # ====== Column: MATCH_DATE ==================================
+      id: 12211627668616538
+      identification: 
+        column-name: MATCH_DATE
+        type: Plain Text
+
+      heading: 
+        heading: Match Date
+        alignment: start
+
+      single-row-view: 
+        use-column-heading: true
+
+      layout: 
+        sequence: 20
+        column-alignment: start
+
+      accessibility: 
+        value-identifies-row: false
+
+      source: 
+        primary-key: false
+
+      column-filter: 
+        type: Default Based on Column Type
+        date-ranges: All
+
+      enable-users-to: 
+        hide: true
+        sort: true
+        filter: true
+        highlight: true
+        control-break: true
+        aggregate: true
+        compute: true
+        chart: true
+        group-by: true
+        pivot: true
+
+      security: 
+        escape-special-characters: true
+
+    - # ====== Column: HOME_TEAM ===================================
+      id: 12211793612616539
+      identification: 
+        column-name: HOME_TEAM
+        type: Plain Text
+
+      heading: 
+        heading: Home Team
+        alignment: start
+
+      single-row-view: 
+        use-column-heading: true
+
+      layout: 
+        sequence: 30
+        column-alignment: start
+
+      accessibility: 
+        value-identifies-row: false
+
+      source: 
+        primary-key: false
+
+      column-filter: 
+        type: Default Based on Column Type
+
+      enable-users-to: 
+        hide: true
+        sort: true
+        filter: true
+        highlight: true
+        control-break: true
+        aggregate: true
+        compute: true
+        chart: true
+        group-by: true
+        pivot: true
+
+      security: 
+        escape-special-characters: true
+
+    - # ====== Column: AWAY_TEAM ===================================
+      id: 12211884119616540
+      identification: 
+        column-name: AWAY_TEAM
+        type: Plain Text
+
+      heading: 
+        heading: Away Team
+        alignment: start
+
+      single-row-view: 
+        use-column-heading: true
+
+      layout: 
+        sequence: 40
+        column-alignment: start
+
+      accessibility: 
+        value-identifies-row: false
+
+      source: 
+        primary-key: false
+
+      column-filter: 
+        type: Default Based on Column Type
+
+      enable-users-to: 
+        hide: true
+        sort: true
+        filter: true
+        highlight: true
+        control-break: true
+        aggregate: true
+        compute: true
+        chart: true
+        group-by: true
+        pivot: true
+
+      security: 
+        escape-special-characters: true
+
+    - # ====== Column: GOAL_DIFFERENCE =============================
+      id: 12211997645616541
+      identification: 
+        column-name: GOAL_DIFFERENCE
+        type: Plain Text
+
+      heading: 
+        heading: Goal Difference
+        alignment: end
+
+      single-row-view: 
+        use-column-heading: true
+
+      layout: 
+        sequence: 50
+        column-alignment: end
+
+      accessibility: 
+        value-identifies-row: false
+
+      source: 
+        primary-key: false
+
+      column-filter: 
+        type: Default Based on Column Type
+
+      enable-users-to: 
+        hide: true
+        sort: true
+        filter: true
+        highlight: true
+        control-break: true
+        aggregate: true
+        compute: true
+        chart: true
+        group-by: true
+        pivot: true
+
+      security: 
+        escape-special-characters: true
+
+    - # ====== Column: EXPECTED_RESULT =============================
+      id: 12212088706616542
+      identification: 
+        column-name: EXPECTED_RESULT
+        type: Plain Text
+
+      heading: 
+        heading: Expected Result
+        alignment: start
+
+      single-row-view: 
+        use-column-heading: true
+
+      layout: 
+        sequence: 60
+        column-alignment: start
+
+      accessibility: 
+        value-identifies-row: false
+
+      source: 
+        primary-key: false
+
+      column-filter: 
+        type: Default Based on Column Type
+
+      enable-users-to: 
+        hide: true
+        sort: true
+        filter: true
+        highlight: true
+        control-break: true
+        aggregate: true
+        compute: true
+        chart: true
+        group-by: true
+        pivot: true
+
+      security: 
+        escape-special-characters: true
+
+    printing: 
+      output: 
+        layout: Default Report Layout
+        view-file-as: Attachment
+
+      page: 
+        size: Letter
+        orientation: Landscape
+        units: Inches
+        width: 11
+        height: 8.5
+        border-width: 0.5
+        border-color: '#666666'
+
+      page-header: 
+        font: Helvetica
+        font-weight: Normal
+        font-size: 12
+        font-color: '#000000'
+        alignment: center
+        page-header-text: 'Search for the exact result (group stage matches only):'
+
+      column-headings: 
+        font: Helvetica
+        font-weight: Bold
+        font-size: 10
+        font-color: '#000000'
+        background-color: '#EEEEEE'
+
+      columns: 
+        font: Helvetica
+        font-weight: Normal
+        font-size: 10
+        font-color: '#000000'
+        background-color: '#FFFFFF'
+
+      page-footer: 
+        font: Helvetica
+        font-weight: Normal
+        font-size: 12
+        font-color: '#000000'
+        alignment: center
+
+- # ====== Region: Bracket =====================================
+  id: 12212174419616543
+  identification: 
+    name: Bracket
+    title: Knockout Stage
+    type: Dynamic Content
+
+  source: 
+    language: PL/SQL
+    pl/sql-function-body-returning-a-clob: |
+      DECLARE
+          v_html       CLOB;
+          v_bg_grad    VARCHAR2(100) := 'linear-gradient(to bottom, #003a4d, #001520)';
+          v_box_bg     VARCHAR2(50)  := '#004f68';
+          v_border     VARCHAR2(50)  := '#00838f';
+          v_gold       VARCHAR2(50)  := '#FFD700';
+      
+          TYPE t_rounds IS TABLE OF VARCHAR2(50);
+          v_rounds t_rounds := t_rounds('Round of 32', 'Round of 16', 'Quarter-Finals', 'Semi-Finals');
+      
+          --  Lógica de Árbol Binario para ordenar las llaves
+          CURSOR c_matches(p_round VARCHAR2, p_half NUMBER) IS
+              WITH Bracket_Tree (round_name, home_team, away_team, winner, method, path_id) AS (
+                  -- 1. Nodo Raíz: Partimos de la Final (ID = 1)
+                  SELECT ROUND, HOME_TEAM, AWAY_TEAM, WINNER, METHOD, 1 AS path_id
+                  FROM KNOCKOUT_PREDICTIONS
+                  WHERE ROUND = 'Final'
+                  
+                  UNION ALL
+                  
+                  -- 2. Paso Recursivo: Trazamos el camino hacia atrás.
+                  SELECT c.ROUND, c.HOME_TEAM, c.AWAY_TEAM, c.WINNER, c.METHOD,
+                         -- Si el partido previo alimenta al equipo Local del padre, va a la parte superior (x2)
+                         -- Si alimenta al Visitante, va a la parte inferior (x2 + 1)
+                         CASE WHEN c.WINNER = p.home_team THEN p.path_id * 2
+                              ELSE p.path_id * 2 + 1 END AS path_id
+                  FROM KNOCKOUT_PREDICTIONS c
+                  JOIN Bracket_Tree p ON (c.WINNER = p.home_team OR c.WINNER = p.away_team)
+                                     AND c.ROUND = CASE p.round_name
+                                                      WHEN 'Final' THEN 'Semi-Finals'
+                                                      WHEN 'Semi-Finals' THEN 'Quarter-Finals'
+                                                      WHEN 'Quarter-Finals' THEN 'Round of 16'
+                                                      WHEN 'Round of 16' THEN 'Round of 32'
+                                                   END
+              ),
+              Match_Rank AS (
+                  SELECT home_team AS HOME_TEAM, 
+                         away_team AS AWAY_TEAM, 
+                         winner AS WINNER, 
+                         method AS METHOD,
+                         -- Ordenamos visualmente usando nuestro ID de árbol binario
+                         ROW_NUMBER() OVER (ORDER BY path_id) as rn,
+                         COUNT(*) OVER () as total_cnt
+                  FROM Bracket_Tree
+                  WHERE round_name = p_round
+              )
+              SELECT HOME_TEAM, AWAY_TEAM, WINNER, METHOD
+              FROM Match_Rank
+              WHERE (p_half = 1 AND rn <= total_cnt / 2)
+                 OR (p_half = 2 AND rn > total_cnt / 2)
+              ORDER BY rn;
+      
+          FUNCTION render_match(p_home VARCHAR2, p_away VARCHAR2, p_winner VARCHAR2, p_method VARCHAR2, p_is_center BOOLEAN DEFAULT FALSE) RETURN VARCHAR2 IS
+              v_res VARCHAR2(4000);
+              -- COMPRESIÓN MÁXIMA DE ANCHO Y LETRA
+              v_width   VARCHAR2(20) := CASE WHEN p_is_center THEN '120px' ELSE '90px' END; 
+              v_font    VARCHAR2(20) := CASE WHEN p_is_center THEN '11px' ELSE '9px' END;  
+          BEGIN
+              v_res := '<div style="background:'||v_box_bg||'; border:1px solid '||v_border||'; border-radius:3px; margin:3px 0; padding:2px 4px; width:'||v_width||'; font-size:'||v_font||'; box-shadow:0 2px 4px rgba(0,0,0,0.3); line-height:1.2;">';
+              v_res := v_res || '<div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; '|| (CASE WHEN p_winner = p_home THEN 'font-weight:bold; color:#fff;' ELSE 'color:#a09eb5;' END) ||'">'||p_home||'</div>';
+              v_res := v_res || '<div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; '|| (CASE WHEN p_winner = p_away THEN 'font-weight:bold; color:#fff;' ELSE 'color:#a09eb5;' END) ||'">'||p_away||'</div></div>';
+              RETURN v_res;
+          END;
+      
+      BEGIN
+          DBMS_LOB.CREATETEMPORARY(v_html, FALSE);
+          -- Contenedor principal
+          v_html := '<div style="background: '||v_bg_grad||'; padding: 8px 4px; border-radius: 8px; display: flex; justify-content: center; overflow: hidden; font-family: sans-serif; width: 100%; color: #fff;">';
+      
+          -- LADO IZQUIERDO: Separación mínima (gap: 3px)
+          v_html := v_html || '<div style="display: flex; flex-direction: row; gap: 3px;">'; 
+          FOR i IN 1..v_rounds.COUNT LOOP
+              v_html := v_html || '<div style="display: flex; flex-direction: column; justify-content: space-around;">';
+              FOR m IN c_matches(v_rounds(i), 1) LOOP
+                  v_html := v_html || render_match(m.HOME_TEAM, m.AWAY_TEAM, m.WINNER, m.METHOD);
+              END LOOP;
+              v_html := v_html || '</div>';
+          END LOOP;
+          v_html := v_html || '</div>';
+      
+          -- CENTRO: Márgenes laterales muy reducidos
+          v_html := v_html || '<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 0 5px;">';
+          FOR m IN (SELECT HOME_TEAM, AWAY_TEAM, WINNER, METHOD FROM KNOCKOUT_PREDICTIONS WHERE ROUND = 'Final') LOOP
+              v_html := v_html || '<div style="color: '||v_gold||'; font-size: 16px; font-weight: bold; margin-bottom: 8px; text-align: center;">🏆 FINAL</div>';
+              v_html := v_html || render_match(m.HOME_TEAM, m.AWAY_TEAM, m.WINNER, m.METHOD, TRUE);
+              v_html := v_html || '<div style="background: linear-gradient(135deg, #D4AF37 0%, #FFDF00 50%, #D4AF37 100%); color: #001520; padding: 6px 12px; border-radius: 4px; font-weight: bold; margin-top: 10px; text-align: center; font-size:10px;">CHAMPION: '||m.WINNER||'</div>';
+          END LOOP;
+          v_html := v_html || '</div>';
+      
+          -- LADO DERECHO: Separación mínima (gap: 3px)
+          v_html := v_html || '<div style="display: flex; flex-direction: row-reverse; gap: 3px;">';
+          FOR i IN 1..v_rounds.COUNT LOOP
+              v_html := v_html || '<div style="display: flex; flex-direction: column; justify-content: space-around;">';
+              FOR m IN c_matches(v_rounds(i), 2) LOOP
+                  v_html := v_html || render_match(m.HOME_TEAM, m.AWAY_TEAM, m.WINNER, m.METHOD);
+              END LOOP;
+              v_html := v_html || '</div>';
+          END LOOP;
+          v_html := v_html || '</div></div>';
+      
+          RETURN v_html;
+      END;
+
+  layout: 
+    sequence: 50
+    parent-region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Standard
+    template-options: 
+    - '#DEFAULT#'
+    - t-Region--hiddenOverflow
+    - margin-bottom-lg
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    static-id: region-brackets
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  server-cache: 
+    caching: Disabled
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    performance: 
+      lazy-loading: false
+
+- # ====== Region: Buscador eliminatorias ======================
+  id: 12212338710616545
+  identification: 
+    name: Buscador eliminatorias
+    title: 'Search for the exact result (knockout stage matches only):'
+    type: Interactive Report
+
+  source: 
+    location: Local Database
+    type: SQL Query
+    sql-query: |
+      SELECT 
+          ROUND,
+          HOME_TEAM,
+          AWAY_TEAM,
+          WINNER,
+          CASE 
+              WHEN METHOD = 'REGULAR TIME' THEN 'Regular Time'
+              WHEN METHOD = 'MENTAL STRENGTH' THEN 'Penalties (PK)'
+              ELSE METHOD 
+          END AS WINNING_METHOD
+      FROM KNOCKOUT_PREDICTIONS
+      ORDER BY 
+          CASE ROUND
+              WHEN 'Round of 32' THEN 1
+              WHEN 'Round of 16' THEN 2
+              WHEN 'Quarter-Finals' THEN 3
+              WHEN 'Semi-Finals' THEN 4
+              WHEN 'Final' THEN 5
+              ELSE 6
+          END ASC
+
+  layout: 
+    sequence: 10
+    parent-region: Bracket # 12212174419616543
+    slot: SUB_REGIONS
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Interactive Report
+    template-options: 
+    - '#DEFAULT#'
+    - t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  server-cache: 
+    caching: Disabled
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    id: 12212440284616546
+    link: 
+      link-column: Exclude Link Column
+
+    pagination: 
+      type: Row Ranges X to Y
+      display-position: Bottom - Right
+
+    performance: 
+      lazy-loading: false
+      maximum-rows-to-process: 1000000
+
+    search-bar: 
+      include-search-bar: true
+      search-field: true
+      finder-drop-down: true
+      reports-select-list: true
+      rows-per-page-selector: false
+
+    actions-menu: 
+      include-actions-menu: true
+      filter: true
+      select-columns: true
+      rows-per-page: true
+      sort: true
+      control-break: true
+      highlight: true
+      compute: true
+      aggregate: true
+      chart: true
+      group-by: true
+      pivot: true
+      flashback: true
+      save-report: true
+      save-public-report: false
+      reset: true
+      help: true
+      download: true
+      subscription: true
+
+    download: 
+      formats: 
+      - CSV
+      - HTML
+      - Excel
+      - PDF
+      send-as-email: true
+
+    heading: 
+      fixed-to: Page
+
+    icon-view: 
+      show: false
+
+    detail-view: 
+      show: false
+
+    saved-reports: 
+    - # ====== Saved Report: Primary Report ========================
+      id: 12402497854627087
+      identification: 
+        name: Primary Report
+        alias: 124025
+
+    columns: 
+    - # ====== Column: HOME_TEAM ===================================
+      id: 12212718011616549
+      identification: 
+        column-name: HOME_TEAM
+        type: Plain Text
+
+      heading: 
+        heading: Home Team
+        alignment: start
+
+      single-row-view: 
+        use-column-heading: true
+
+      layout: 
+        sequence: 30
+        column-alignment: start
+
+      accessibility: 
+        value-identifies-row: false
+
+      source: 
+        primary-key: false
+
+      column-filter: 
+        type: Default Based on Column Type
+
+      enable-users-to: 
+        hide: true
+        sort: true
+        filter: true
+        highlight: true
+        control-break: true
+        aggregate: true
+        compute: true
+        chart: true
+        group-by: true
+        pivot: true
+
+      security: 
+        escape-special-characters: true
+
+    - # ====== Column: AWAY_TEAM ===================================
+      id: 12212871866616550
+      identification: 
+        column-name: AWAY_TEAM
+        type: Plain Text
+
+      heading: 
+        heading: Away Team
+        alignment: start
+
+      single-row-view: 
+        use-column-heading: true
+
+      layout: 
+        sequence: 40
+        column-alignment: start
+
+      accessibility: 
+        value-identifies-row: false
+
+      source: 
+        primary-key: false
+
+      column-filter: 
+        type: Default Based on Column Type
+
+      enable-users-to: 
+        hide: true
+        sort: true
+        filter: true
+        highlight: true
+        control-break: true
+        aggregate: true
+        compute: true
+        chart: true
+        group-by: true
+        pivot: true
+
+      security: 
+        escape-special-characters: true
+
+    - # ====== Column: ROUND =======================================
+      id: 12394766343636203
+      identification: 
+        column-name: ROUND
+        type: Plain Text
+
+      heading: 
+        heading: Round
+        alignment: start
+
+      single-row-view: 
+        use-column-heading: true
+
+      layout: 
+        sequence: 50
+        column-alignment: start
+
+      accessibility: 
+        value-identifies-row: false
+
+      source: 
+        primary-key: false
+
+      column-filter: 
+        type: Default Based on Column Type
+
+      enable-users-to: 
+        hide: true
+        sort: true
+        filter: true
+        highlight: true
+        control-break: true
+        aggregate: true
+        compute: true
+        chart: true
+        group-by: true
+        pivot: true
+
+      security: 
+        escape-special-characters: true
+
+    - # ====== Column: WINNER ======================================
+      id: 12394805487636204
+      identification: 
+        column-name: WINNER
+        type: Plain Text
+
+      heading: 
+        heading: Winner
+        alignment: start
+
+      single-row-view: 
+        use-column-heading: true
+
+      layout: 
+        sequence: 60
+        column-alignment: start
+
+      accessibility: 
+        value-identifies-row: false
+
+      source: 
+        primary-key: false
+
+      column-filter: 
+        type: Default Based on Column Type
+
+      enable-users-to: 
+        hide: true
+        sort: true
+        filter: true
+        highlight: true
+        control-break: true
+        aggregate: true
+        compute: true
+        chart: true
+        group-by: true
+        pivot: true
+
+      security: 
+        escape-special-characters: true
+
+    - # ====== Column: WINNING_METHOD ==============================
+      id: 12394995827636205
+      identification: 
+        column-name: WINNING_METHOD
+        type: Plain Text
+
+      heading: 
+        heading: Winning Method
+        alignment: start
+
+      single-row-view: 
+        use-column-heading: true
+
+      layout: 
+        sequence: 70
+        column-alignment: start
+
+      accessibility: 
+        value-identifies-row: false
+
+      source: 
+        primary-key: false
+
+      column-filter: 
+        type: Default Based on Column Type
+
+      enable-users-to: 
+        hide: true
+        sort: true
+        filter: true
+        highlight: true
+        control-break: true
+        aggregate: true
+        compute: true
+        chart: true
+        group-by: true
+        pivot: true
+
+      security: 
+        escape-special-characters: true
+
+    printing: 
+      output: 
+        layout: Default Report Layout
+        view-file-as: Attachment
+
+      page: 
+        size: Letter
+        orientation: Landscape
+        units: Inches
+        width: 11
+        height: 8.5
+        border-width: 0.5
+        border-color: '#666666'
+
+      page-header: 
+        font: Helvetica
+        font-weight: Normal
+        font-size: 12
+        font-color: '#000000'
+        alignment: center
+        page-header-text: 'Search for the exact result (knockout stage matches only):'
+
+      column-headings: 
+        font: Helvetica
+        font-weight: Bold
+        font-size: 10
+        font-color: '#000000'
+        background-color: '#EEEEEE'
+
+      columns: 
+        font: Helvetica
+        font-weight: Normal
+        font-size: 10
+        font-color: '#000000'
+        background-color: '#FFFFFF'
+
+      page-footer: 
+        font: Helvetica
+        font-weight: Normal
+        font-size: 12
+        font-color: '#000000'
+        alignment: center
+
+- # ====== Region: Breadcrumb ==================================
+  id: 12371909200027336
+  identification: 
+    name: Breadcrumb
+    type: Breadcrumb
+
+  source: 
+    breadcrumb: Breadcrumb # 8979832800230580
+
+  layout: 
+    sequence: 10
+    parent-region: No Parent
+    slot: REGION_POSITION_01
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Title Bar
+    template-options: 
+    - '#DEFAULT#'
+    - t-BreadcrumbRegion--useBreadcrumbTitle
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    appearance: 
+      breadcrumb-template: Breadcrumb
+      template-options: 
+      - '#DEFAULT#'
+

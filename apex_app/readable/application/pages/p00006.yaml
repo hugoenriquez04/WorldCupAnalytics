@@ -1,0 +1,154 @@
+---
+# ====== Page: Match Calendar ================================
+id: 6
+identification: 
+  name: Match Calendar
+  alias: MATCH-CALENDAR
+  title: Match Calendar
+
+appearance: 
+  page-mode: Normal
+  page-template: Theme Default
+  template-options: 
+  - '#DEFAULT#'
+
+navigation-menu: 
+  override-user-interface-level: false
+
+navigation: 
+  cursor-focus: Do not focus cursor
+  warn-on-unsaved-changes: true
+
+css: 
+  inline: |
+    
+    #region-calendar .t-Region-title {
+        color: #ffffff !important; 
+        font-weight: 700 !important;
+        font-size: 16px !important;
+    }
+    
+    #region-calendar .t-Region-header {
+        background-color: #0b607c !important; 
+        border-bottom: none !important; 
+    }
+    
+    /* Estilo general para todas las cajas de partidos en el calendario */
+    .fc-event {
+        background-color: #004f68 !important; /* Azul petróleo de tus tarjetas */
+        border: 1px solid #FFD700 !important; /* Borde dorado sutil (Mundial) */
+        color: #ffffff !important; /* Texto en blanco brillante */
+        border-radius: 4px !important;
+        padding: 2px 4px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
+    }
+    
+    /* Efecto al pasar el ratón por encima (Hover) */
+    .fc-event:hover {
+        background-color: #00838f !important; /* Azul más brillante al iluminarse */
+        border-color: #ffffff !important;
+        color: #ffffff !important;
+        cursor: pointer;
+    }
+    
+    /* Negrita para el texto del evento para que se lea mejor */
+    .fc-event .fc-event-title {
+        font-weight: 600 !important;
+        font-size: 11px !important;
+    }
+    
+    /* Opcional: Quitar el punto de color que a veces pone APEX al lado de la hora */
+    .fc-daygrid-event-dot {
+        display: none !important;
+    }
+
+security: 
+  authentication: Page Requires Authentication
+  deep-linking: Application Default
+  page-access-protection: Arguments Must Have Checksum
+  form-auto-complete: Off
+  browser-cache: Application Default
+
+session-management: 
+  rejoin-sessions: Application Default
+
+advanced: 
+  enable-duplicate-page-submissions: Yes - Enable page to be re-posted
+  reload-on-submit: Only for Success
+
+server-cache: 
+  caching: Disabled
+
+regions: 
+- # ====== Region: Match Calendar ==============================
+  id: 9595952192204865
+  identification: 
+    name: Match Calendar
+    type: Calendar
+
+  source: 
+    location: Local Database
+    type: Table / View
+    table-owner: Parsing Schema
+    table-name: VW_WC2026_SCHEDULE
+    include-rowid-column: false
+
+  layout: 
+    sequence: 20
+    parent-region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Standard
+    template-options: 
+    - '#DEFAULT#'
+    - t-Region--scrollBody
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    static-id: region-calendar
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  security: 
+    escape-special-characters: true
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    settings: 
+      display-column: MATCH_DISPLAY
+      start-date-column: DATE_RW
+      event-sorting: Automatic
+      show-time: true
+      time-format: 24 Hour
+      first-hour: 9
+      multiple-line-events: true
+      show-tooltip: true
+      calendar-views-and-navigation: 'month:week:day:list:navigation'
+      maximum-events-/-day: 10
+      show-weekend: true
+
+    performance: 
+      lazy-loading: false
+
+    advanced: 
+      initialization-javascript-function: |
+        function(options) {
+            // Forzamos al calendario a arrancar en junio de 2026
+            options.initialDate = "2026-06-01";
+            
+            // Devolvemos las opciones modificadas a APEX
+            return options;
+        }
+

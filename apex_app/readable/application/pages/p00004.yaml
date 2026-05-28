@@ -1,0 +1,210 @@
+---
+# ====== Page: 2026 World Cup Venues =========================
+id: 4
+identification: 
+  name: 2026 World Cup Venues
+  alias: VENUE-MAP
+  title: 2026 World Cup Venues
+
+appearance: 
+  page-mode: Normal
+  page-template: Theme Default
+  template-options: 
+  - '#DEFAULT#'
+
+navigation-menu: 
+  override-user-interface-level: false
+
+navigation: 
+  cursor-focus: Do not focus cursor
+  warn-on-unsaved-changes: false
+
+css: 
+  inline: |
+    /* Forzar el ancho del recuadro blanco del mapa en APEX */
+    .a-Map-infoWindow,
+    .maplibregl-popup-content,
+    .maplibregl-popup {
+        min-width: 350px !important;
+        max-width: 400px !important;
+    }
+
+security: 
+  authentication: Page Requires Authentication
+  deep-linking: Application Default
+  page-access-protection: Arguments Must Have Checksum
+  form-auto-complete: Off
+  browser-cache: Application Default
+
+session-management: 
+  rejoin-sessions: Application Default
+
+advanced: 
+  enable-duplicate-page-submissions: Yes - Enable page to be re-posted
+  reload-on-submit: Only for Success
+
+server-cache: 
+  caching: Disabled
+
+regions: 
+- # ====== Region: Venue Map ===================================
+  id: 8998319810178302
+  identification: 
+    name: Venue Map
+    type: Map
+
+  source: 
+    location: None
+
+  layout: 
+    sequence: 20
+    parent-region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Blank with Attributes (No Grid)
+    template-options: 
+    - '#DEFAULT#'
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    id: 8998795309178301
+    map: 
+      background: Default
+      height: 640
+
+    controls: 
+      navigation-bar: Zoom and Compass
+      navigation-bar-position: End
+      options: 
+      - Scale Bar
+      - Infinite Map
+      - Rectangle Zoom
+
+    initial-position-and-zoom: 
+      type: Based on Spatial Results
+
+    legend: 
+      show: true
+      position: End
+
+    attributes: 
+      messages-position: Below
+      unit-system: Metric
+
+    performance: 
+      lazy-loading: true
+
+    layers: 
+    - # ====== Layer: Venue Map ====================================
+      id: 8999217932178300
+      identification: 
+        name: Venue Map
+        layer-type: Points
+
+      layout: 
+        sequence: 10
+
+      source: 
+        location: Local Database
+        type: Table / View
+        table-owner: Parsing Schema
+        table-name: WC2026_VENUES
+        include-rowid-column: false
+        use-spatial-index: false
+
+      column-mapping: 
+        geometry-column-data-type: Longitude/Latitude
+        longitude-column: LONGITUDE
+        latitude-column: LATITUDE
+
+      point-objects: 
+        style: SVG
+        shape: Default
+
+      point-clustering: 
+        enable: false
+
+      tooltip: 
+        advanced-formatting: false
+        column: VENUE_NAME
+
+      info-window: 
+        advanced-formatting: true
+        html-expression: |
+          <div style="width: 350px; white-space: normal; font-family: sans-serif;">
+              
+              <div style="width: 350px; height: 190px; overflow: hidden; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                  <img src="&IMAGE_URL." alt="&VENUE_NAME." style="width: 100%; height: 100%; object-fit: cover; display: block;">
+              </div>
+              
+              <h3 style="margin-top: 0; color: #005ea5; border-bottom: 2px solid #eee; padding-bottom: 5px; font-size: 18px;">
+                  &VENUE_NAME.
+              </h3>
+              <p style="margin-bottom: 5px; font-size: 14px;"><b>📍 Ciudad:</b> &CITY.</p>
+              <p style="margin-bottom: 0; font-size: 14px;"><b>👥 Capacidad:</b> &CAPACITY. espectadores</p>
+          </div>
+
+      legend: 
+        show: true
+        enable-to-hide: true
+
+- # ====== Region: 2026 World Cup Venues =======================
+  id: 9180432319067003
+  identification: 
+    name: 2026 World Cup Venues
+    title: Explore the 2026  FIFA World Cup Venues
+    type: Static Content
+
+  layout: 
+    sequence: 10
+    parent-region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Content Block
+    template-options: 
+    - '#DEFAULT#'
+    - t-ContentBlock--h1
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  header-and-footer: 
+    header-text: The 2026 FIFA World Cup will be held across world-class venues in North America. Click on any location pin on the interactive map below to discover stadium capacities, city details, and exclusive photos.
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    settings: 
+      output-as: HTML
+      expand-shortcuts: false
+
