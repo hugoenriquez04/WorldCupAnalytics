@@ -1,4 +1,4 @@
-# ORACLE RETO ENSEÑA 4.0: Hack The World Cup 2026
+# ORACLE CHALLENGE ENSEÑA 4.0: Hack The World Cup 2026
 # Team: Recreativo de WHERE V=A
 # Members: Alberto Gallego (GitHub: alberto95GT), Javier Campos (javicc22), Hugo Enríquez (hugoenriquez04)
 
